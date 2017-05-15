@@ -1,0 +1,22 @@
+{
+    "version": "0.2.0",
+    "configurations": [{
+            "name": "XDS-Agent",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "remotePath": "",
+            "port": 2345,
+            "host": "127.0.0.1",
+            "program": "${workspaceRoot}",
+            "env": {
+                "GOPATH": "${workspaceRoot}/../../../..:${env:GOPATH}",
+                "WORKSPACE_ROOT": "${workspaceRoot}",
+                "DEBUG_MODE": "1",
+                "ROOT_DIR": "${workspaceRoot}/../../../.."
+            },
+            "args": ["-log", "debug", "-c", "config.json.in"],
+            "showLog": false
+        }
+    ]
+}

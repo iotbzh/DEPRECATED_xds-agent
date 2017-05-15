@@ -1,0 +1,7 @@
+{
+    "syncthing": {
+        "binDir": "./bin",
+        "home": "${ROOT_DIR}/tmp/local_dev/syncthing-config",
+        "gui-address": "http://localhost:8384"
+    }
+}

@@ -1,0 +1,11 @@
+bin
+tools
+package
+**/glide.lock
+**/vendor
+
+debug
+
+# private (prefixed by 2 underscores) directories or files
+__*/
+__*
