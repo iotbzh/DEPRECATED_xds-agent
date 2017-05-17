@@ -19,6 +19,7 @@ type SyncThingConf struct {
 
 type FileConfig struct {
 	HTTPPort string         `json:"httpPort"`
+	LogsDir  string         `json:"logsDir"`
 	SThgConf *SyncThingConf `json:"syncthing"`
 }
 
@@ -60,7 +61,7 @@ func updateConfigFromFile(c *Config, confFile string) (*FileConfig, error) {
 		return &fCfg, nil
 	}
 
-	c.log.Infof("Use config file: %s", *cFile)
+	c.Log.Infof("Use config file: %s", *cFile)
 
 	// TODO move on viper package to support comments in JSON and also
 	// bind with flags (command line options)
@@ -73,18 +74,22 @@ func updateConfigFromFile(c *Config, confFile string) (*FileConfig, error) {
 	}
 
 	// Support environment variables (IOW ${MY_ENV_VAR} syntax) in agent-config.json
-	// TODO: better to use reflect package to iterate on fields and be more generic
-	var rep string
+	for _, field := range []*string{
+		&fCfg.LogsDir,
+		&fCfg.SThgConf.Home,
+		&fCfg.SThgConf.BinDir} {
 
-	if rep, err = resolveEnvVar(fCfg.SThgConf.BinDir); err != nil {
-		return nil, err
+		rep, err := resolveEnvVar(*field)
+		if err != nil {
+			return nil, err
+		}
+		*field = path.Clean(rep)
 	}
-	fCfg.SThgConf.BinDir = path.Clean(rep)
 
-	if rep, err = resolveEnvVar(fCfg.SThgConf.Home); err != nil {
-		return nil, err
+	// Config file settings overwrite default config
+	if fCfg.HTTPPort != "" {
+		c.HTTPPort = fCfg.HTTPPort
 	}
-	fCfg.SThgConf.Home = path.Clean(rep)
 
 	return &fCfg, nil
 }
@@ -105,16 +110,4 @@ func resolveEnvVar(s string) (string, error) {
 	}
 
 	return res, nil
-}
-
-// exists returns whether the given file or directory exists or not
-func exists(path string) bool {
-	_, err := os.Stat(path)
-	if err == nil {
-		return true
-	}
-	if os.IsNotExist(err) {
-		return false
-	}
-	return true
 }

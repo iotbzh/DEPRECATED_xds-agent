@@ -51,10 +51,12 @@ Supported fields in configuration file are:
 ```json
 {
     "httpPort": "http port of agent REST interface",
+    "logsDir": "directory to store logs (eg. syncthing output)",
     "syncthing": {
         "binDir": "syncthing binaries directory (use xds-agent executable dir when not set)",
         "home": "syncthing home directory (usually .../syncthing-config)",
-        "gui-address": "syncthing gui url (default http://localhost:8384)"
+        "gui-address": "syncthing gui url (default http://localhost:8384)",
+        "gui-apikey": "syncthing api-key to use (default auto-generated)"
     }
 }
 ```

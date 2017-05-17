@@ -7,8 +7,6 @@ import (
 	"os"
 	"time"
 
-	"fmt"
-
 	"github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
 	"github.com/iotbzh/xds-agent/lib/agent"
@@ -37,19 +35,19 @@ var AppSubVersion = "unknown-dev"
 
 // xdsAgent main routine
 func xdsAgent(cliCtx *cli.Context) error {
+	var err error
 
 	// Create Agent context
 	ctx := agent.NewAgent(cliCtx)
 
 	// Load config
-	cfg, err := xdsconfig.Init(cliCtx, ctx.Log)
+	ctx.Config, err = xdsconfig.Init(cliCtx, ctx.Log)
 	if err != nil {
 		return cli.NewExitError(err, 2)
 	}
-	ctx.Config = &cfg
 
 	// Start local instance of Syncthing and Syncthing-notify
-	ctx.SThg = st.NewSyncThing(ctx.Config.FileConf.SThgConf, ctx.Log)
+	ctx.SThg = st.NewSyncThing(ctx.Config, ctx.Log)
 
 	ctx.Log.Infof("Starting Syncthing...")
 	ctx.SThgCmd, err = ctx.SThg.Start()
@@ -72,12 +70,11 @@ func xdsAgent(cliCtx *cli.Context) error {
 		if err := ctx.SThg.Connect(); err == nil {
 			break
 		}
-		ctx.Log.Infof("Establishing connection to Syncthing (retry %d/5)", retry)
+		ctx.Log.Infof("Establishing connection to Syncthing (retry %d/10)", retry)
 		time.Sleep(time.Second)
 		retry--
 	}
-	if ctx.SThg == nil {
-		err = fmt.Errorf("ERROR: cannot connect to Syncthing (url: %s)", ctx.SThg.BaseURL)
+	if err != nil || retry == 0 {
 		return cli.NewExitError(err, 2)
 	}
 

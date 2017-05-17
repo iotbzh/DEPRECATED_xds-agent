@@ -7,6 +7,7 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
+	"github.com/iotbzh/xds-server/lib/common"
 )
 
 // Config parameters (json format) of /config command
@@ -16,9 +17,9 @@ type Config struct {
 	VersionGitTag string `json:"gitTag"`
 
 	// Private / un-exported fields
-	HTTPPort string `json:"-"`
-	FileConf *FileConfig
-	log      *logrus.Logger
+	HTTPPort string         `json:"-"`
+	FileConf *FileConfig    `json:"-"`
+	Log      *logrus.Logger `json:"-"`
 }
 
 // Config default values
@@ -29,7 +30,7 @@ const (
 )
 
 // Init loads the configuration on start-up
-func Init(ctx *cli.Context, log *logrus.Logger) (Config, error) {
+func Init(ctx *cli.Context, log *logrus.Logger) (*Config, error) {
 	var err error
 
 	// Define default configuration
@@ -39,27 +40,26 @@ func Init(ctx *cli.Context, log *logrus.Logger) (Config, error) {
 		VersionGitTag: ctx.App.Metadata["git-tag"].(string),
 
 		HTTPPort: DefaultPort,
-		log:      log,
+		Log:      log,
 	}
 
 	// config file settings overwrite default config
 	c.FileConf, err = updateConfigFromFile(&c, ctx.GlobalString("config"))
 	if err != nil {
-		return Config{}, err
+		return nil, err
 	}
 
-	return c, nil
+	if c.FileConf.LogsDir != "" && !common.Exists(c.FileConf.LogsDir) {
+		if err := os.MkdirAll(c.FileConf.LogsDir, 0770); err != nil {
+			return nil, fmt.Errorf("Cannot create logs dir: %v", err)
+		}
+	}
+	c.Log.Infoln("Logs directory: ", c.FileConf.LogsDir)
+
+	return &c, nil
 }
 
 // UpdateAll Update the current configuration
 func (c *Config) UpdateAll(newCfg Config) error {
 	return fmt.Errorf("Not Supported")
-}
-
-func dirExists(path string) bool {
-	_, err := os.Stat(path)
-	if os.IsNotExist(err) {
-		return false
-	}
-	return true
 }

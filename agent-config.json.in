@@ -1,4 +1,5 @@
 {
+    "logsDir": "/tmp/xds-agent/logs",
     "syncthing": {
         "binDir": "./bin",
         "home": "${ROOT_DIR}/tmp/local_dev/syncthing-config",
