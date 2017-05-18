@@ -1,6 +1,7 @@
 package xdsserver
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/Sirupsen/logrus"
@@ -91,8 +92,11 @@ func (s *ServerService) Serve() error {
 	// Serve in the background
 	serveError := make(chan error, 1)
 	go func() {
+		fmt.Printf("Web Server running on localhost:%s ...\n", s.cfg.HTTPPort)
 		serveError <- http.ListenAndServe(":"+s.cfg.HTTPPort, s.router)
 	}()
+
+	fmt.Printf("XDS agent running...\n")
 
 	// Wait for stop, restart or error signals
 	select {
