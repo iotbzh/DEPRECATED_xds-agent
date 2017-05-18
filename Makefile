@@ -33,18 +33,18 @@ mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
 ROOT_SRCDIR := $(patsubst %/,%,$(dir $(mkfile_path)))
 ROOT_GOPRJ := $(abspath $(ROOT_SRCDIR)/../../../..)
 LOCAL_BINDIR := $(ROOT_SRCDIR)/bin
+LOCAL_TOOLSDIR := $(ROOT_SRCDIR)/tools
 PACKAGE_DIR := $(ROOT_SRCDIR)/package
 
 export GOPATH := $(shell go env GOPATH):$(ROOT_GOPRJ)
-export PATH := $(PATH):$(ROOT_SRCDIR)/tools
+export PATH := $(PATH):$(LOCAL_TOOLSDIR)
 
 VERBOSE_1 := -v
 VERBOSE_2 := -v -x
 
+all: tools/syncthing build
 
-all: build
-
-build: vendor tools/syncthing
+build: vendor tools/syncthing/copytobin
 	@echo "### Build XDS agent (version $(VERSION), subversion $(SUB_VERSION))";
 	@cd $(ROOT_SRCDIR); $(BUILD_ENV_FLAGS) go build $(VERBOSE_$(V)) -i -o $(LOCAL_BINDIR)/xds-agent -ldflags "-X main.AppVersion=$(VERSION) -X main.AppSubVersion=$(SUB_VERSION)" .
 
@@ -52,7 +52,7 @@ package: clean build
 	@mkdir -p $(PACKAGE_DIR)/xds-agent
 	@cp agent-config.json.in $(PACKAGE_DIR)/xds-agent/agent-config.json
 	@cp -a $(LOCAL_BINDIR)/* $(PACKAGE_DIR)/xds-agent
-	cd $(PACKAGE_DIR) && zip -r $(LOCAL_BINDIR)/xds-agent_$(ARCH)-v$(VERSION)_$(SUB_VERSION).zip ./xds-agent
+	cd $(PACKAGE_DIR) && zip -r $(ROOT_SRCDIR)/xds-agent_$(ARCH)-v$(VERSION)_$(SUB_VERSION).zip ./xds-agent
 
 test: tools/glide
 	go test --race $(shell ./tools/glide novendor)
@@ -63,10 +63,10 @@ vet: tools/glide
 fmt: tools/glide
 	go fmt $(shell ./tools/glide novendor)
 
-run: build/xds tools/syncthing
+run: build/xds tools/syncthing/copytobin
 	$(LOCAL_BINDIR)/xds-agent --log info -c agent-config.json.in
 
-debug: build/xds tools/syncthing
+debug: build/xds tools/syncthing/copytobin
 	$(LOCAL_BINDIR)/xds-agent --log debug -c agent-config.json.in
 
 .PHONY: clean
@@ -91,11 +91,16 @@ tools/glide:
 
 .PHONY: tools/syncthing
 tools/syncthing:
-	@(test -s $(LOCAL_BINDIR)/syncthing || \
-	DESTDIR=$(LOCAL_BINDIR) \
+	@test -e $(LOCAL_TOOLSDIR)/syncthing -a -e $(LOCAL_TOOLSDIR)/syncthing-inotify  || { \
+	DESTDIR=$(LOCAL_TOOLSDIR) \
 	SYNCTHING_VERSION=$(SYNCTHING_VERSION) \
 	SYNCTHING_INOTIFY_VERSION=$(SYNCTHING_INOTIFY_VERSION) \
-	./scripts/get-syncthing.sh)
+	./scripts/get-syncthing.sh; }
+
+.PHONY:
+tools/syncthing/copytobin:
+	@test -e $(LOCAL_TOOLSDIR)/syncthing -a -e $(LOCAL_TOOLSDIR)/syncthing-inotify || { echo "Please execute first: make tools/syncthing\n"; exit 1; }
+	@cp -f $(LOCAL_TOOLSDIR)/syncthing* $(LOCAL_BINDIR)
 
 .PHONY: help
 help:
