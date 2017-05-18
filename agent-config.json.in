@@ -1,8 +1,7 @@
 {
-    "logsDir": "/tmp/xds-agent/logs",
+    "logsDir": "${HOME}/.xds/agent/logs",
     "syncthing": {
-        "binDir": "./bin",
-        "home": "${ROOT_DIR}/tmp/local_dev/syncthing-config",
+        "home": "${HOME}/.xds/agent/syncthing-config",
         "gui-address": "http://localhost:8384"
     }
 }
