@@ -92,6 +92,7 @@ tools/glide:
 .PHONY: tools/syncthing
 tools/syncthing:
 	@test -e $(LOCAL_TOOLSDIR)/syncthing -a -e $(LOCAL_TOOLSDIR)/syncthing-inotify  || { \
+	mkdir -p $(LOCAL_TOOLSDIR); \
 	DESTDIR=$(LOCAL_TOOLSDIR) \
 	SYNCTHING_VERSION=$(SYNCTHING_VERSION) \
 	SYNCTHING_INOTIFY_VERSION=$(SYNCTHING_INOTIFY_VERSION) \
@@ -100,6 +101,7 @@ tools/syncthing:
 .PHONY:
 tools/syncthing/copytobin:
 	@test -e $(LOCAL_TOOLSDIR)/syncthing -a -e $(LOCAL_TOOLSDIR)/syncthing-inotify || { echo "Please execute first: make tools/syncthing\n"; exit 1; }
+	@mkdir -p $(LOCAL_BINDIR)
 	@cp -f $(LOCAL_TOOLSDIR)/syncthing* $(LOCAL_BINDIR)
 
 .PHONY: help
