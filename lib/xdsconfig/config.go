@@ -7,7 +7,7 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
-	"github.com/iotbzh/xds-server/lib/common"
+	"github.com/iotbzh/xds-agent/lib/common"
 )
 
 // Config parameters (json format) of /config command
