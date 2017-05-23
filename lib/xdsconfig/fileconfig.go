@@ -18,9 +18,10 @@ type SyncThingConf struct {
 }
 
 type FileConfig struct {
-	HTTPPort string         `json:"httpPort"`
-	LogsDir  string         `json:"logsDir"`
-	SThgConf *SyncThingConf `json:"syncthing"`
+	HTTPPort  string         `json:"httpPort"`
+	LogsDir   string         `json:"logsDir"`
+	XDSAPIKey string         `json:"xds-apikey"`
+	SThgConf  *SyncThingConf `json:"syncthing"`
 }
 
 // getConfigFromFile reads configuration from a config file.

@@ -12,8 +12,8 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/iotbzh/xds-agent/lib/agent"
 	"github.com/iotbzh/xds-agent/lib/syncthing"
+	"github.com/iotbzh/xds-agent/lib/webserver"
 	"github.com/iotbzh/xds-agent/lib/xdsconfig"
-	"github.com/iotbzh/xds-agent/lib/xdsserver"
 )
 
 const (
@@ -87,7 +87,7 @@ func xdsAgent(cliCtx *cli.Context) error {
 	ctx.Log.Infof("Local Syncthing ID: %s", id)
 
 	// Create and start Web Server
-	ctx.WWWServer = xdsserver.NewServer(ctx.Config, ctx.Log)
+	ctx.WWWServer = webserver.New(ctx.Config, ctx.Log)
 	if err = ctx.WWWServer.Serve(); err != nil {
 		log.Println(err)
 		return cli.NewExitError(err, 3)

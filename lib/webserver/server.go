@@ -1,8 +1,9 @@
-package xdsserver
+package webserver
 
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/gin-gonic/gin"
@@ -27,8 +28,8 @@ type ServerService struct {
 const indexFilename = "index.html"
 const cookieMaxAge = "3600"
 
-// NewServer creates an instance of ServerService
-func NewServer(conf *xdsconfig.Config, log *logrus.Logger) *ServerService {
+// New creates an instance of ServerService
+func New(conf *xdsconfig.Config, log *logrus.Logger) *ServerService {
 
 	// Setup logging for gin router
 	if log.Level == logrus.DebugLevel {
@@ -67,11 +68,14 @@ func (s *ServerService) Serve() error {
 	// Setup middlewares
 	s.router.Use(gin.Logger())
 	s.router.Use(gin.Recovery())
-	s.router.Use(s.middlewareXDSDetails())
 	s.router.Use(s.middlewareCORS())
+	s.router.Use(s.middlewareXDSDetails())
+	s.router.Use(s.middlewareCSRF())
 
 	// Sessions manager
 	s.sessions = session.NewClientSessions(s.router, s.log, cookieMaxAge)
+
+	s.router.GET("", s.slashHandler)
 
 	// Create REST API
 	s.api = apiv1.New(s.sessions, s.cfg, s.log, s.router)
@@ -117,6 +121,11 @@ func (s *ServerService) Stop() {
 	close(s.stop)
 }
 
+// serveSlash provides response to GET "/"
+func (s *ServerService) slashHandler(c *gin.Context) {
+	c.String(200, "Hello from XDS agent!")
+}
+
 // Add details in Header
 func (s *ServerService) middlewareXDSDetails() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -126,20 +135,65 @@ func (s *ServerService) middlewareXDSDetails() gin.HandlerFunc {
 	}
 }
 
+func (s *ServerService) isValidAPIKey(key string) bool {
+	return (key == s.cfg.FileConf.XDSAPIKey && key != "")
+}
+
+func (s *ServerService) middlewareCSRF() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// Allow requests carrying a valid API key
+		if s.isValidAPIKey(c.Request.Header.Get("X-API-Key")) {
+			// Set the access-control-allow-origin header for CORS requests
+			// since a valid API key has been provided
+			c.Header("Access-Control-Allow-Origin", "*")
+			c.Next()
+			return
+		}
+
+		// Allow io.socket request
+		if strings.HasPrefix(c.Request.URL.Path, "/socket.io") {
+			c.Next()
+			return
+		}
+
+		/* FIXME Add really CSRF support
+
+		// Allow requests for anything not under the protected path prefix,
+		// and set a CSRF cookie if there isn't already a valid one.
+		if !strings.HasPrefix(c.Request.URL.Path, prefix) {
+			cookie, err := c.Cookie("CSRF-Token-" + unique)
+			if err != nil || !validCsrfToken(cookie.Value) {
+				s.log.Debugln("new CSRF cookie in response to request for", c.Request.URL)
+				c.SetCookie("CSRF-Token-"+unique, newCsrfToken(), 600, "/", "", false, false)
+			}
+			c.Next()
+			return
+		}
+
+		// Verify the CSRF token
+		token := c.Request.Header.Get("X-CSRF-Token-" + unique)
+		if !validCsrfToken(token) {
+			c.AbortWithError(403, "CSRF Error")
+			return
+		}
+
+		c.Next()
+		*/
+		c.AbortWithError(403, fmt.Errorf("Not valid API key"))
+	}
+}
+
 // CORS middleware
 func (s *ServerService) middlewareCORS() gin.HandlerFunc {
 	return func(c *gin.Context) {
-
 		if c.Request.Method == "OPTIONS" {
 			c.Header("Access-Control-Allow-Origin", "*")
-			c.Header("Access-Control-Allow-Headers", "Content-Type")
-			c.Header("Access-Control-Allow-Methods", "POST, DELETE, GET, PUT")
-			c.Header("Content-Type", "application/json")
+			c.Header("Access-Control-Allow-Headers", "Content-Type, X-API-Key")
+			c.Header("Access-Control-Allow-Methods", "GET, POST, DELETE")
 			c.Header("Access-Control-Max-Age", cookieMaxAge)
 			c.AbortWithStatus(204)
 			return
 		}
-
 		c.Next()
 	}
 }

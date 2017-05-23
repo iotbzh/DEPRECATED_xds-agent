@@ -11,7 +11,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/iotbzh/xds-agent/lib/syncthing"
 	"github.com/iotbzh/xds-agent/lib/xdsconfig"
-	"github.com/iotbzh/xds-agent/lib/xdsserver"
+	"github.com/iotbzh/xds-agent/lib/webserver"
 )
 
 // Context holds the Agent context structure
@@ -22,7 +22,7 @@ type Context struct {
 	SThg        *st.SyncThing
 	SThgCmd     *exec.Cmd
 	SThgInotCmd *exec.Cmd
-	WWWServer   *xdsserver.ServerService
+	WWWServer   *webserver.ServerService
 	Exit        chan os.Signal
 }
 

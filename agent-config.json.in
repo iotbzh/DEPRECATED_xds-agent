@@ -1,5 +1,6 @@
 {
     "logsDir": "${HOME}/.xds/agent/logs",
+    "xds-apikey": "1234abcezam",
     "syncthing": {
         "home": "${HOME}/.xds/agent/syncthing-config",
         "gui-address": "http://localhost:8384"
