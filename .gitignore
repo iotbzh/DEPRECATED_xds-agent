@@ -3,6 +3,7 @@ tools
 package
 **/glide.lock
 **/vendor
+*.zip
 
 debug
 

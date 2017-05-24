@@ -29,6 +29,11 @@ HOST_GOARCH=$(shell go env GOARCH)
 ARCH=$(HOST_GOOS)-$(HOST_GOARCH)
 REPOPATH=github.com/iotbzh/xds-agent
 
+EXT=
+ifeq ($(HOST_GOOS), windows)
+	EXT=.exe
+endif
+
 mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
 ROOT_SRCDIR := $(patsubst %/,%,$(dir $(mkfile_path)))
 ROOT_GOPRJ := $(abspath $(ROOT_SRCDIR)/../../../..)
@@ -46,7 +51,7 @@ all: tools/syncthing build
 
 build: vendor tools/syncthing/copytobin
 	@echo "### Build XDS agent (version $(VERSION), subversion $(SUB_VERSION))";
-	@cd $(ROOT_SRCDIR); $(BUILD_ENV_FLAGS) go build $(VERBOSE_$(V)) -i -o $(LOCAL_BINDIR)/xds-agent -ldflags "-X main.AppVersion=$(VERSION) -X main.AppSubVersion=$(SUB_VERSION)" .
+	@cd $(ROOT_SRCDIR); $(BUILD_ENV_FLAGS) go build $(VERBOSE_$(V)) -i -o $(LOCAL_BINDIR)/xds-agent$(EXT) -ldflags "-X main.AppVersion=$(VERSION) -X main.AppSubVersion=$(SUB_VERSION)" .
 
 package: clean build
 	@mkdir -p $(PACKAGE_DIR)/xds-agent
@@ -64,10 +69,10 @@ fmt: tools/glide
 	go fmt $(shell ./tools/glide novendor)
 
 run: build/xds tools/syncthing/copytobin
-	$(LOCAL_BINDIR)/xds-agent --log info -c agent-config.json.in
+	$(LOCAL_BINDIR)/xds-agent$(EXT) --log info -c agent-config.json.in
 
 debug: build/xds tools/syncthing/copytobin
-	$(LOCAL_BINDIR)/xds-agent --log debug -c agent-config.json.in
+	$(LOCAL_BINDIR)/xds-agent$(EXT) --log debug -c agent-config.json.in
 
 .PHONY: clean
 clean:
@@ -102,7 +107,7 @@ tools/syncthing:
 tools/syncthing/copytobin:
 	@test -e $(LOCAL_TOOLSDIR)/syncthing -a -e $(LOCAL_TOOLSDIR)/syncthing-inotify || { echo "Please execute first: make tools/syncthing\n"; exit 1; }
 	@mkdir -p $(LOCAL_BINDIR)
-	@cp -f $(LOCAL_TOOLSDIR)/syncthing* $(LOCAL_BINDIR)
+	@cp -f $(LOCAL_TOOLSDIR)/syncthing$(EXT) $(LOCAL_TOOLSDIR)/syncthing-inotify$(EXT) $(LOCAL_BINDIR)
 
 .PHONY: help
 help:
