@@ -47,11 +47,21 @@ export PATH := $(PATH):$(LOCAL_TOOLSDIR)
 VERBOSE_1 := -v
 VERBOSE_2 := -v -x
 
+# Release or Debug mode
+ifeq ($(filter 1,$(RELEASE) $(REL)),)
+	GORELEASE=
+	BUILD_MODE="Debug mode"
+else
+	# optimized code without debug info
+	GORELEASE= -s -w
+	BUILD_MODE="Release mode"
+endif
+
 all: tools/syncthing build
 
 build: vendor tools/syncthing/copytobin
-	@echo "### Build XDS agent (version $(VERSION), subversion $(SUB_VERSION))";
-	@cd $(ROOT_SRCDIR); $(BUILD_ENV_FLAGS) go build $(VERBOSE_$(V)) -i -o $(LOCAL_BINDIR)/xds-agent$(EXT) -ldflags "-X main.AppVersion=$(VERSION) -X main.AppSubVersion=$(SUB_VERSION)" .
+	@echo "### Build XDS agent (version $(VERSION), subversion $(SUB_VERSION)) - $(BUILD_MODE)";
+	@cd $(ROOT_SRCDIR); $(BUILD_ENV_FLAGS) go build $(VERBOSE_$(V)) -i -o $(LOCAL_BINDIR)/xds-agent$(EXT) -ldflags "$(GORELEASE) -X main.AppVersion=$(VERSION) -X main.AppSubVersion=$(SUB_VERSION)" .
 
 package: clean build
 	@mkdir -p $(PACKAGE_DIR)/xds-agent
