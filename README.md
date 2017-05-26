@@ -15,7 +15,7 @@ used to remotely cross build applications.
 
 ### Dependencies
 
-- Install and setup [Go](https://golang.org/doc/install) version 1.7 or
+- Install and setup [Go](https://golang.org/doc/install) version 1.8 or
 higher to compile this tool.
 
 
@@ -33,6 +33,14 @@ Clone this repo into your `$GOPATH/src/github.com/iotbzh` and use delivered Make
 And to install xds-agent in /usr/local/bin:
 ```bash
 make install
+```
+
+> **NOTE**: To cross build for example for Windows, just execute:
+```bash
+export GOOS=windows
+export GOARCH=amd64
+make all
+make package
 ```
 
 ## How to run
