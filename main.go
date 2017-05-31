@@ -66,12 +66,13 @@ func xdsAgent(cliCtx *cli.Context) error {
 
 	// Establish connection with local Syncthing (retry if connection fail)
 	time.Sleep(3 * time.Second)
-	retry := 10
+	maxRetry := 30
+	retry := maxRetry
 	for retry > 0 {
 		if err := ctx.SThg.Connect(); err == nil {
 			break
 		}
-		ctx.Log.Infof("Establishing connection to Syncthing (retry %d/10)", retry)
+		ctx.Log.Infof("Establishing connection to Syncthing (retry %d/%d", retry, maxRetry)
 		time.Sleep(time.Second)
 		retry--
 	}
