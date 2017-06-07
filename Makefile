@@ -13,11 +13,18 @@ SYNCTHING_INOTIFY_VERSION = master
 
 # Retrieve git tag/commit to set sub-version string
 ifeq ($(origin SUB_VERSION), undefined)
-	SUB_VERSION := $(shell git describe --tags --always | sed 's/^v//')
-	ifeq ($(SUB_VERSION), )
-		SUB_VERSION=unknown-dev
+	SUB_VERSION := $(shell git describe --tags 2>/dev/null | sed 's/^v//')
+	ifneq ($(SUB_VERSION), )
+		VERSION := $(firstword $(subst -, ,$(SUB_VERSION)))
+		SUB_VERSION := $(word 2,$(subst -, ,$(SUB_VERSION)))
+	else
+		SUB_VERSION := $(shell git describe --tags --always  | sed 's/^v//')
+		ifeq ($(SUB_VERSION), )
+			SUB_VERSION := unknown-dev
+		endif
 	endif
 endif
+
 
 # Configurable variables for installation (default /usr/local/...)
 ifeq ($(origin INSTALL_DIR), undefined)
@@ -57,6 +64,13 @@ else
 	BUILD_MODE="Release mode"
 endif
 
+ifeq ($(SUB_VERSION), )
+	PACKAGE_ZIPFILE := xds-agent_$(ARCH)-v$(VERSION).zip
+else
+	PACKAGE_ZIPFILE := xds-agent_$(ARCH)-v$(VERSION)_$(SUB_VERSION).zip
+endif
+
+
 all: tools/syncthing build
 
 build: vendor tools/syncthing/copytobin
@@ -67,7 +81,14 @@ package: clean build
 	@mkdir -p $(PACKAGE_DIR)/xds-agent
 	@cp agent-config.json.in $(PACKAGE_DIR)/xds-agent/agent-config.json
 	@cp -a $(LOCAL_BINDIR)/* $(PACKAGE_DIR)/xds-agent
-	cd $(PACKAGE_DIR) && zip -r $(ROOT_SRCDIR)/xds-agent_$(ARCH)-v$(VERSION)_$(SUB_VERSION).zip ./xds-agent
+	cd $(PACKAGE_DIR) && zip -r $(ROOT_SRCDIR)/$(PACKAGE_ZIPFILE) ./xds-agent
+
+.PHONY: package-all
+package-all:
+	@echo "# Build linux amd64..."
+	GOOS=linux GOARCH=amd64 RELEASE=1 make -f $(ROOT_SRCDIR)/Makefile package
+	@echo "# Build windows amd64..."
+	GOOS=windows GOARCH=amd64 RELEASE=1 make -f $(ROOT_SRCDIR)/Makefile package
 
 test: tools/glide
 	go test --race $(shell ./tools/glide novendor)
