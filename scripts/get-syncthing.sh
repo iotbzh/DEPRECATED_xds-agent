@@ -44,7 +44,7 @@ tarball="syncthing-${GOOS_ST}-${GOARCH}-v${SYNCTHING_VERSION}.${TB_EXT}" \
     && curl -sfSL "https://github.com/syncthing/syncthing/releases/download/v${SYNCTHING_VERSION}/sha1sum.txt.asc" -O \
 	&& gpg -q --verify sha1sum.txt.asc \
 	&& grep -E " ${tarball}\$" sha1sum.txt.asc | sha1sum -c - \
-	&& rm sha1sum.txt.asc
+	&& rm -rf sha1sum.txt.asc syncthing-${GOOS_ST}-${GOARCH}-v${SYNCTHING_VERSION}
 	if [ "${TB_EXT}" = "tar.gz" ]; then
         tar -xvf "$tarball" --strip-components=1 "$(basename "$tarball" .tar.gz)"/syncthing \
         && mv syncthing ${DESTDIR}/syncthing || exit 1
@@ -65,11 +65,21 @@ if [ "$SYNCTHING_INOTIFY_VERSION" = "master" ]; then
     git status
     export GOPATH=$(cd ../../../.. && pwd)
     version=$(git describe --tags --always | sed 's/^v//')__patch_165
-    go build -v -i -ldflags "-w -X main.Version=$version" -o ${DESTDIR}/syncthing-inotify${EXT} || exit 1
+
+    # Workaround about "cannot find package "golang.org/x/sys/unix"
+    go get -u golang.org/x/sys/unix
+
+    # Workaround about "undefined: stream" error when cross-building MacOS
+    # https://github.com/rjeczalik/notify/issues/108
+    OPTS=""
+    [[ "$GOOS_STI" = "darwin" ]] && OPTS="-tags kqueue"
+
+    go build ${OPTS} -v -i -ldflags "-w -X main.Version=$version" -o ${DESTDIR}/syncthing-inotify${EXT} || exit 1
 else
 
     tarball="syncthing-inotify-${GOOS_STI}-${GOARCH}-v${SYNCTHING_INOTIFY_VERSION}.${TB_EXT}"
     curl -sfSL "https://github.com/syncthing/syncthing-inotify/releases/download/v${SYNCTHING_INOTIFY_VERSION}/${tarball}" -O || exit 1
+	rm -rf syncthing-inotify-${GOOS_STI}-${GOARCH}-v${SYNCTHING_INOTIFY_VERSION}
     if [ "${TB_EXT}" = "tar.gz" ]; then
         tar -xvf "${tarball}" syncthing-inotify && mv syncthing-inotify ${DESTDIR}/syncthing-inotify || exit 1
     else
