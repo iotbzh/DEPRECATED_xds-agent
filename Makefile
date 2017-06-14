@@ -45,7 +45,7 @@ mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
 ROOT_SRCDIR := $(patsubst %/,%,$(dir $(mkfile_path)))
 ROOT_GOPRJ := $(abspath $(ROOT_SRCDIR)/../../../..)
 LOCAL_BINDIR := $(ROOT_SRCDIR)/bin
-LOCAL_TOOLSDIR := $(ROOT_SRCDIR)/tools
+LOCAL_TOOLSDIR := $(ROOT_SRCDIR)/tools/${HOST_GOOS}
 PACKAGE_DIR := $(ROOT_SRCDIR)/package
 
 export GOPATH := $(shell go env GOPATH):$(ROOT_GOPRJ)
@@ -77,7 +77,7 @@ build: vendor tools/syncthing/copytobin
 	@echo "### Build XDS agent (version $(VERSION), subversion $(SUB_VERSION)) - $(BUILD_MODE)";
 	@cd $(ROOT_SRCDIR); $(BUILD_ENV_FLAGS) go build $(VERBOSE_$(V)) -i -o $(LOCAL_BINDIR)/xds-agent$(EXT) -ldflags "$(GORELEASE) -X main.AppVersion=$(VERSION) -X main.AppSubVersion=$(SUB_VERSION)" .
 
-package: clean build
+package: clean tools/syncthing build
 	@mkdir -p $(PACKAGE_DIR)/xds-agent
 	@cp agent-config.json.in $(PACKAGE_DIR)/xds-agent/agent-config.json
 	@cp -a $(LOCAL_BINDIR)/* $(PACKAGE_DIR)/xds-agent
@@ -89,6 +89,8 @@ package-all:
 	GOOS=linux GOARCH=amd64 RELEASE=1 make -f $(ROOT_SRCDIR)/Makefile package
 	@echo "# Build windows amd64..."
 	GOOS=windows GOARCH=amd64 RELEASE=1 make -f $(ROOT_SRCDIR)/Makefile package
+	@echo "# Build darwin amd64..."
+	GOOS=darwin GOARCH=amd64 RELEASE=1 make -f $(ROOT_SRCDIR)/Makefile package
 
 test: tools/glide
 	go test --race $(shell ./tools/glide novendor)
