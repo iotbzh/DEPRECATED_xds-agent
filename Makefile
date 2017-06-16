@@ -25,10 +25,12 @@ ifeq ($(origin SUB_VERSION), undefined)
 	endif
 endif
 
+# for backward compatibility
+DESTDIR := $(INSTALL_DIR)
 
 # Configurable variables for installation (default /usr/local/...)
-ifeq ($(origin INSTALL_DIR), undefined)
-	INSTALL_DIR := /usr/local/bin
+ifeq ($(origin DESTDIR), undefined)
+	DESTDIR := /usr/local/bin
 endif
 
 HOST_GOOS=$(shell go env GOOS)
@@ -117,7 +119,7 @@ distclean: clean
 
 .PHONY: install
 install: all
-	mkdir -p $(INSTALL_DIR) && cp $(LOCAL_BINDIR)/* $(INSTALL_DIR)
+	mkdir -p $(DESTDIR) && cp $(LOCAL_BINDIR)/* $(DESTDIR)
 
 vendor: tools/glide glide.yaml
 	./tools/glide install --strip-vendor

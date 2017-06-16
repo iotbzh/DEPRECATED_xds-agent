@@ -30,12 +30,19 @@ Clone this repo into your `$GOPATH/src/github.com/iotbzh` and use delivered Make
  make all
 ```
 
-And to install xds-agent in /usr/local/bin:
+And to install xds-agent (by default in `/usr/local/bin`):
 ```bash
 make install
 ```
 
-> **NOTE**: To cross build for example for Windows, just execute:
+>**NOTE:** Used `DESTDIR` to specify another install directory
+>```bash
+>make install DESTDIR=$HOME/opt/xds-agent
+>```
+
+
+#### Cross build
+For example on a Linux machine to cross-build for Windows, just execute:
 ```bash
 export GOOS=windows
 export GOARCH=amd64
