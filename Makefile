@@ -148,7 +148,8 @@ tools/syncthing/copytobin:
 .PHONY: help
 help:
 	@echo "Main supported rules:"
-	@echo "  build               (default)"
+	@echo "  all               (default)"
+	@echo "  build
 	@echo "  package"
 	@echo "  install"
 	@echo "  clean"

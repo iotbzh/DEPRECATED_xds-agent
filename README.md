@@ -1,23 +1,72 @@
 # XDS - X(cross) Development System Agent
 
-XDS-agent is an agent that should run on your local machine when you use XDS.
+XDS-agent is an agent that should run on your local host when you use XDS.
 
-This agent takes care of starting [Syncthing](https://syncthing.net/) tool to
-synchronize your projects files from your local machine to build server machine
-or container.
-
+This agent takes care, among others, of starting [Syncthing](https://syncthing.net/)
+tool to synchronize your project files from your local host to XDS build server
+machine or container (where `xds-server` is running).
 
 > **SEE ALSO**: [xds-server](https://github.com/iotbzh/xds-server), a web server
 used to remotely cross build applications.
 
+## How to run
 
-## How to build
+First you need to download `xds-agent` tarballs from xds dashboard by clicking
+on download icon ![download icon](./resources/images/download_icon.jpg) of
+configuration page.
+
+> **NOTE** : you can also download released tarballs from github [releases page](https://github.com/iotbzh/xds-agent/releases).
+
+Then unzip this tarball any where into your local disk.
+
+## Configuration
+
+xds-agent configuration is driven by a JSON config file (named `agent-config.json`).
+The tarball mentioned in previous section includes this file with default settings.
+
+Here is the logic to determine which `agent-config.json` file will be used:
+1. from command line option: `--config myConfig.json`
+2. `$HOME/.xds/agent-config.json` file
+3. `<current dir>/agent-config.json` file
+4. `<xds-agent executable dir>/agent-config.json` file
+
+Supported fields in configuration file are (all fields are optional and listed
+values are the default values):
+```
+{
+    "httpPort": "8010",                             # http port of agent REST interface
+    "logsDir": "/tmp/logs",                         # directory to store logs (eg. syncthing output)
+    "syncthing": {
+        "binDir": ".",                              # syncthing binaries directory (default: executable directory)
+        "home": "${HOME}/.xds/syncthing-config",    # syncthing home directory (usually .../syncthing-config)
+        "gui-address": "http://localhost:8384",     # syncthing gui url (default http://localhost:8384)
+        "gui-apikey": "123456789",                  # syncthing api-key to use (default auto-generated)
+    }
+}
+```
+
+>**NOTE:** environment variables are supported by using `${MY_VAR}` syntax.
+
+## Start-up
+
+Simply to start `xds-agent` executable
+```bash
+./xds-agent &
+```
+
+>**NOTE** if need be, you can increase log level by setting option
+`--log <level>`, supported *level* are: panic, fatal, error, warn, info, debug.
+
+You can now use XDS dashboard and check that connection with `xds-agent` is up.
+(see also [xds-server README](https://github.com/iotbzh/xds-server/blob/master/README.md#xds-dashboard))
+
+
+## Build xds-agent from scratch
 
 ### Dependencies
 
 - Install and setup [Go](https://golang.org/doc/install) version 1.8 or
 higher to compile this tool.
-
 
 ### Building
 
@@ -40,7 +89,6 @@ make install
 >make install DESTDIR=$HOME/opt/xds-agent
 >```
 
-
 #### Cross build
 For example on a Linux machine to cross-build for Windows, just execute:
 ```bash
@@ -49,44 +97,3 @@ export GOARCH=amd64
 make all
 make package
 ```
-
-## How to run
-
-## Configuration
-
-xds-agent configuration is driven by a JSON config file (`agent-config.json`).
-
-Here is the logic to determine which `agent-config.json` file will be used:
-1. from command line option: `--config myConfig.json`
-2. `$HOME/.xds/agent-config.json` file
-3. `<current dir>/agent-config.json` file
-4. `<xds-agent executable dir>/agent-config.json` file
-
-Supported fields in configuration file are:
-```json
-{
-    "httpPort": "http port of agent REST interface",
-    "logsDir": "directory to store logs (eg. syncthing output)",
-    "syncthing": {
-        "binDir": "syncthing binaries directory (use xds-agent executable dir when not set)",
-        "home": "syncthing home directory (usually .../syncthing-config)",
-        "gui-address": "syncthing gui url (default http://localhost:8384)",
-        "gui-apikey": "syncthing api-key to use (default auto-generated)"
-    }
-}
-```
-
->**NOTE:** environment variables are supported by using `${MY_VAR}` syntax.
-
-## Start-up
-
-```bash
-./bin/xds-agent.sh
-
-# OR if you have install agent
-
-/usr/local/bin/xds-agent.sh
-```
-
->**NOTE** you can define some environment variables to setup for example
-config file `XDS_CONFIGFILE` or change logs level `LOG_LEVEL`.
