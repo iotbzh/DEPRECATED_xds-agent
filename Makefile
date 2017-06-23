@@ -93,13 +93,13 @@ package-all:
 	GOOS=darwin GOARCH=amd64 RELEASE=1 make -f $(ROOT_SRCDIR)/Makefile package
 
 test: tools/glide
-	go test --race $(shell ./tools/linux/glide novendor)
+	go test --race $(shell $(LOCAL_TOOLSDIR)/glide novendor)
 
 vet: tools/glide
-	go vet $(shell ./tools/linux/glide novendor)
+	go vet $(shell $(LOCAL_TOOLSDIR)/glide novendor)
 
 fmt: tools/glide
-	go fmt $(shell ./tools/linux/glide novendor)
+	go fmt $(shell $(LOCAL_TOOLSDIR)/glide novendor)
 
 run: build/xds tools/syncthing/copytobin
 	$(LOCAL_BINDIR)/xds-agent$(EXT) --log info -c agent-config.json.in
@@ -120,7 +120,7 @@ install: all
 	mkdir -p $(DESTDIR) && cp $(LOCAL_BINDIR)/* $(DESTDIR)
 
 vendor: tools/glide glide.yaml
-	./tools/linux/glide install --strip-vendor
+	$(LOCAL_TOOLSDIR)/glide install --strip-vendor
 
 .PHONY: tools/glide
 tools/glide:
