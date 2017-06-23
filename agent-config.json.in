@@ -3,6 +3,7 @@
     "xds-apikey": "1234abcezam",
     "syncthing": {
         "home": "${HOME}/.xds/agent/syncthing-config",
-        "gui-address": "http://localhost:8384"
+        "gui-address": "http://localhost:8384",
+        "gui-apikey": "1234abcezam"
     }
 }
