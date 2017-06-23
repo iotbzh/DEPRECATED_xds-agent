@@ -77,7 +77,7 @@ build: tools/syncthing/copytobin
 	@echo "### Build XDS agent (version $(VERSION), subversion $(SUB_VERSION)) - $(BUILD_MODE)";
 	@cd $(ROOT_SRCDIR); $(BUILD_ENV_FLAGS) go build $(VERBOSE_$(V)) -i -o $(LOCAL_BINDIR)/xds-agent$(EXT) -ldflags "$(GORELEASE) -X main.AppVersion=$(VERSION) -X main.AppSubVersion=$(SUB_VERSION)" .
 
-package: clean tools/syncthing build
+package: clean tools/syncthing vendor build
 	@mkdir -p $(PACKAGE_DIR)/xds-agent
 	@cp agent-config.json.in $(PACKAGE_DIR)/xds-agent/agent-config.json
 	@cp -a $(LOCAL_BINDIR)/* $(PACKAGE_DIR)/xds-agent
