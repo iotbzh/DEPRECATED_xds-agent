@@ -7,6 +7,7 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"runtime"
 )
 
 // Exists returns whether the given file or directory exists or not
@@ -42,7 +43,14 @@ func ResolveEnvVar(s string) (string, error) {
 	for _, v := range vars {
 		val := os.Getenv(v[1])
 		if val == "" {
-			return res, fmt.Errorf("ERROR: %s env variable not defined", v[1])
+			// Specific case to resolved $HOME or ${HOME} on Windows host
+			if runtime.GOOS == "windows" && v[1] == "HOME" {
+				if usr, err := user.Current(); err == nil {
+					val = usr.HomeDir
+				}
+			} else {
+				return res, fmt.Errorf("ERROR: %s env variable not defined", v[1])
+			}
 		}
 
 		rer := regexp.MustCompile("\\${" + v[1] + "}")
