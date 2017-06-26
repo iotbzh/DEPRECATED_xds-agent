@@ -17,8 +17,8 @@ import (
 	"os/exec"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/iotbzh/xds-agent/lib/common"
 	"github.com/iotbzh/xds-agent/lib/xdsconfig"
+	common "github.com/iotbzh/xds-common/golib"
 	"github.com/syncthing/syncthing/lib/config"
 )
 
@@ -185,7 +185,7 @@ func (s *SyncThing) Start() (*exec.Cmd, error) {
 			time.Sleep(500 * time.Millisecond)
 			if common.Exists(stConfigFile) {
 				break
-	}
+			}
 		}
 		if tmo <= 0 {
 			return nil, fmt.Errorf("Cannot start Syncthing for config file creation")

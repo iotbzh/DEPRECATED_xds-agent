@@ -7,7 +7,7 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/iotbzh/xds-agent/lib/common"
+	common "github.com/iotbzh/xds-common/golib"
 )
 
 type SyncThingConf struct {

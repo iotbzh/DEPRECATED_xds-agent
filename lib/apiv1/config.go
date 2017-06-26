@@ -5,8 +5,8 @@ import (
 	"sync"
 
 	"github.com/gin-gonic/gin"
-	"github.com/iotbzh/xds-agent/lib/common"
 	"github.com/iotbzh/xds-agent/lib/xdsconfig"
+	common "github.com/iotbzh/xds-common/golib"
 )
 
 var confMut sync.Mutex
