@@ -22,7 +22,7 @@ deb http://download.opensuse.org/repositories/isv:/LinuxAutomotive:/app-Developm
 EOL
 "
 sudo apt-get update
-sudo apt-get install agl-xds-agent-bin
+sudo apt-get install agl-xds-agent
 ```
 
 The value 'DISTRO' can be set to {Debian_8.0, Debian_9.0, xUbuntu_16.04, xUbuntu_16.10, xUbuntu_17.04}
@@ -30,7 +30,7 @@ The value 'DISTRO' can be set to {Debian_8.0, Debian_9.0, xUbuntu_16.04, xUbuntu
 Update the package
 ```bash
 sudo apt-get update
-sudo apt-get upgrade agl-xds-agent-bin
+sudo apt-get upgrade agl-xds-agent
 ```
 
 The files are install here:
