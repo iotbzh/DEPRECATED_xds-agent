@@ -149,7 +149,7 @@ tools/syncthing/copytobin:
 help:
 	@echo "Main supported rules:"
 	@echo "  all               (default)"
-	@echo "  build
+	@echo "  build"
 	@echo "  package"
 	@echo "  install"
 	@echo "  clean"
