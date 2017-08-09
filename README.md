@@ -1,6 +1,6 @@
 # XDS - X(cross) Development System Agent
 
-XDS-agent is an agent that should run on your local host when you use XDS.
+XDS-agent is a client that should run on your local / user development machine when you use XDS.
 
 This agent takes care, among others, of starting [Syncthing](https://syncthing.net/)
 tool to synchronize your project files from your local host to XDS build server
