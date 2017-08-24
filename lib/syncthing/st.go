@@ -300,7 +300,9 @@ func (s *SyncThing) Connect() error {
 		return fmt.Errorf("ERROR: cannot connect to Syncthing (null client)")
 	}
 
-	s.client.SetLogger(s.log)
+	s.client.SetLogLevel(s.log.Level.String())
+	s.client.LoggerPrefix = "SYNCTHING: "
+	s.client.LoggerOut = s.log.Out
 
 	return nil
 }
