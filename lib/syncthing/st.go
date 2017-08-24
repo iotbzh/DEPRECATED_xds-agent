@@ -170,7 +170,6 @@ func (s *SyncThing) Start() (*exec.Cmd, error) {
 	env := []string{
 		"STNODEFAULTFOLDER=1",
 		"STNOUPGRADE=1",
-		"STNORESTART=1",
 	}
 
 	// XXX - temporary hack because -gui-apikey seems to correctly handle by
