@@ -15,7 +15,8 @@ ifeq ($(origin SUB_VERSION), undefined)
 	ifneq ($(SUB_VERSION), )
 		VERSION := $(firstword $(subst -, ,$(SUB_VERSION)))
 		SUB_VERSION := $(word 2,$(subst -, ,$(SUB_VERSION)))
-	else
+	endif
+	ifeq ($(SUB_VERSION), )
 		SUB_VERSION := $(shell git rev-parse --short HEAD)
 		ifeq ($(SUB_VERSION), )
 			SUB_VERSION := unknown-dev
