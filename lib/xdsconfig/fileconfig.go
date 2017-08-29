@@ -92,5 +92,11 @@ func updateConfigFromFile(c *Config, confFile string) (*FileConfig, error) {
 		c.HTTPPort = fCfg.HTTPPort
 	}
 
+	// Set default apikey
+	// FIXME - rework with dynamic key
+	if fCfg.XDSAPIKey == "" {
+		fCfg.XDSAPIKey = "1234abcezam"
+	}
+
 	return &fCfg, nil
 }
