@@ -95,9 +95,17 @@ func (s *SyncThing) startProc(exeName string, args []string, env []string, eChan
 		exec.Command("bash", "-c", "pkill -9 "+exeName).Output()
 	}
 
-	path, err := exec.LookPath(path.Join(s.binDir, exeName))
+	// When not set (or set to '.') set bin to path of xds-agent executable
+	bdir := s.binDir
+	if bdir == "" || bdir == "." {
+		if dir, err := filepath.Abs(filepath.Dir(os.Args[0])); err == nil {
+			bdir = dir
+		}
+	}
+
+	path, err := exec.LookPath(path.Join(bdir, exeName))
 	if err != nil {
-		return nil, fmt.Errorf("Cannot find %s executable in %s", exeName, s.binDir)
+		return nil, fmt.Errorf("Cannot find %s executable in %s", exeName, bdir)
 	}
 	cmd := exec.Command(path, args...)
 	cmd.Env = os.Environ()
