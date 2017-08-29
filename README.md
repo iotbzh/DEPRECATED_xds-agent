@@ -28,12 +28,14 @@ sudo apt-get install agl-xds-agent
 The value 'DISTRO' can be set to {Debian_8.0, Debian_9.0, xUbuntu_16.04, xUbuntu_16.10, xUbuntu_17.04}
 
 Update the package
+
 ```bash
 sudo apt-get update
 sudo apt-get upgrade agl-xds-agent
 ```
 
 The files are install here:
+
 ```bash
 /opt/AGL/agl-xds-agent
 ```
@@ -41,6 +43,7 @@ The files are install here:
 ### Install package for rpm distro type
 
 #### openSUSE
+
 ```bash
 export DISTRO="openSUSE_Leap_42.2"
 sudo zypper ar http://download.opensuse.org/repositories/isv:/LinuxAutomotive:/app-Development/${DISTRO}/isv:LinuxAutomotive:app-Development.repo
@@ -51,12 +54,14 @@ sudo zypper install agl-xds-agent
 The value 'DISTRO' can be set to {openSUSE_Leap_42.2, openSUSE_Leap_42.3, openSUSE_Tumbleweed}
 
 Update the package
+
 ```bash
 sudo zypper ref
 sudo zypper install --force agl-xds-agent
 ```
 
 The files are install here:
+
 ```bash
 /opt/AGL/agl-xds-agent
 ```
@@ -77,22 +82,33 @@ xds-agent configuration is driven by a JSON config file (named `agent-config.jso
 The tarball mentioned in previous section includes this file with default settings.
 
 Here is the logic to determine which `agent-config.json` file will be used:
-1. from command line option: `--config myConfig.json`
-2. `$HOME/.xds/agent-config.json` file
-3. `<current dir>/agent-config.json` file
-4. `<xds-agent executable dir>/agent-config.json` file
 
-Supported fields in configuration file are (all fields are optional and listed
-values are the default values):
-```
+1. from command line option: `--config myConfig.json`
+1. `$HOME/.xds/agent-config.json` file
+1. `<current dir>/agent-config.json` file
+1. `<xds-agent executable dir>/agent-config.json` file
+
+Supported fields in configuration file are (all fields are optional and example
+below corresponds to the default values):
+
+- **httpPort** : http port of agent REST interface
+- **logsDir**  : directory to store logs (eg. syncthing output)
+- **xds-apikey** : xds-agent api-key to use (always set value to "1234abcezam")
+- **syncthing.binDir** : syncthing binaries directory (default: executable directory)
+- **syncthing.home"** : syncthing home directory (usually .../syncthing-config)
+- **syncthing.gui-address** : syncthing gui url (default http://localhost:8384)
+- **syncthing.gui-apikey** : syncthing api-key to use (default auto-generated)
+
+```json
 {
-    "httpPort": "8010",                             # http port of agent REST interface
-    "logsDir": "/tmp/logs",                         # directory to store logs (eg. syncthing output)
+    "httpPort": "8010",
+    "logsDir": "/tmp/logs",
+    "xds-apikey": "1234abcezam",
     "syncthing": {
-        "binDir": ".",                              # syncthing binaries directory (default: executable directory)
-        "home": "${HOME}/.xds/syncthing-config",    # syncthing home directory (usually .../syncthing-config)
-        "gui-address": "http://localhost:8384",     # syncthing gui url (default http://localhost:8384)
-        "gui-apikey": "123456789",                  # syncthing api-key to use (default auto-generated)
+        "binDir": ".",
+        "home": "${HOME}/.xds/syncthing-config",
+        "gui-address": "http://localhost:8384",
+        "gui-apikey": "1234abcezam",
     }
 }
 ```
@@ -102,6 +118,7 @@ values are the default values):
 ## Start-up
 
 Simply to start `xds-agent` executable
+
 ```bash
 ./xds-agent &
 ```
@@ -112,17 +129,17 @@ Simply to start `xds-agent` executable
 You can now use XDS dashboard and check that connection with `xds-agent` is up.
 (see also [xds-server README](https://github.com/iotbzh/xds-server/blob/master/README.md#xds-dashboard))
 
-
 ## Build xds-agent from scratch
 
 ### Dependencies
 
-- Install and setup [Go](https://golang.org/doc/install) version 1.8 or
+Install and setup [Go](https://golang.org/doc/install) version 1.8 or
 higher to compile this tool.
 
 ### Building
 
 Clone this repo into your `$GOPATH/src/github.com/iotbzh` and use delivered Makefile:
+
 ```bash
  mkdir -p $GOPATH/src/github.com/iotbzh
  cd $GOPATH/src/github.com/iotbzh
@@ -132,6 +149,7 @@ Clone this repo into your `$GOPATH/src/github.com/iotbzh` and use delivered Make
 ```
 
 And to install xds-agent (by default in `/usr/local/bin`):
+
 ```bash
 make install
 ```
@@ -142,7 +160,9 @@ make install
 >```
 
 #### Cross build
+
 For example on a Linux machine to cross-build for Windows, just execute:
+
 ```bash
 export GOOS=windows
 export GOARCH=amd64
