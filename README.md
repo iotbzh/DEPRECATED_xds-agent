@@ -16,8 +16,7 @@ used to remotely cross build applications.
 ```bash
 export DISTRO="Debian_8.0"
 wget -O - http://download.opensuse.org/repositories/isv:/LinuxAutomotive:/app-Development/${DISTRO}/Release.key | sudo apt-key add -
-sudo bash -c "cat >/etc/apt/sources.list.d/AGL.list<<EOL
-#AGL
+sudo bash -c "cat >> /etc/apt/sources.list.d/AGL.list<<EOL
 deb http://download.opensuse.org/repositories/isv:/LinuxAutomotive:/app-Development/${DISTRO}/ ./
 EOL
 "
