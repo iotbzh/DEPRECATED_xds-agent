@@ -67,13 +67,9 @@ The files are install here:
 
 ## How to install on other platform
 
-You need to download `xds-agent` tarballs from xds dashboard by clicking
-on download icon ![download icon](./resources/images/download_icon.jpg) of
-configuration page.
+Download released tarballs from github [releases page](https://github.com/iotbzh/xds-agent/releases).
 
-> **NOTE** : you can also download released tarballs from github [releases page](https://github.com/iotbzh/xds-agent/releases).
-
-Then unzip this tarball any where into your local disk.
+Then unzip this tarball any where into your local disk (for example: /opt/AGL/xds or C:\AGL\xds).
 
 ## Configuration
 
