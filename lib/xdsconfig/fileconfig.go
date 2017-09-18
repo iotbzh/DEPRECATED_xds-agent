@@ -75,11 +75,13 @@ func updateConfigFromFile(c *Config, confFile string) (*FileConfig, error) {
 	}
 
 	// Support environment variables (IOW ${MY_ENV_VAR} syntax) in agent-config.json
-	for _, field := range []*string{
+	vars := []*string{
 		&fCfg.LogsDir,
-		&fCfg.SThgConf.Home,
-		&fCfg.SThgConf.BinDir} {
-
+	}
+	if fCfg.SThgConf != nil {
+		vars = append(vars, &fCfg.SThgConf.Home, &fCfg.SThgConf.BinDir)
+	}
+	for _, field := range vars {
 		var err error
 		*field, err = common.ResolveEnvVar(*field)
 		if err != nil {

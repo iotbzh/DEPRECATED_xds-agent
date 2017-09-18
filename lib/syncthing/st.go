@@ -48,7 +48,6 @@ type ExitChan struct {
 // NewSyncThing creates a new instance of Syncthing
 func NewSyncThing(conf *xdsconfig.Config, log *logrus.Logger) *SyncThing {
 	var url, apiKey, home, binDir string
-	var err error
 
 	stCfg := conf.FileConf.SThgConf
 	if stCfg != nil {
@@ -66,13 +65,7 @@ func NewSyncThing(conf *xdsconfig.Config, log *logrus.Logger) *SyncThing {
 	}
 
 	if home == "" {
-		home = "/mnt/share"
-	}
-
-	if binDir == "" {
-		if binDir, err = filepath.Abs(filepath.Dir(os.Args[0])); err != nil {
-			binDir = "/usr/local/bin"
-		}
+		panic("home parameter must be set")
 	}
 
 	s := SyncThing{
@@ -89,6 +82,8 @@ func NewSyncThing(conf *xdsconfig.Config, log *logrus.Logger) *SyncThing {
 
 // Start Starts syncthing process
 func (s *SyncThing) startProc(exeName string, args []string, env []string, eChan *chan ExitChan) (*exec.Cmd, error) {
+	var err error
+	var exePath string
 
 	// Kill existing process (useful for debug ;-) )
 	if os.Getenv("DEBUG_MODE") != "" {
@@ -98,16 +93,23 @@ func (s *SyncThing) startProc(exeName string, args []string, env []string, eChan
 	// When not set (or set to '.') set bin to path of xds-agent executable
 	bdir := s.binDir
 	if bdir == "" || bdir == "." {
-		if dir, err := filepath.Abs(filepath.Dir(os.Args[0])); err == nil {
-			bdir = dir
+		exe, _ := os.Executable()
+		if exeAbsPath, err := filepath.Abs(exe); err == nil {
+			if exePath, err := filepath.EvalSymlinks(exeAbsPath); err == nil {
+				bdir = filepath.Dir(exePath)
+			}
 		}
 	}
 
-	path, err := exec.LookPath(path.Join(bdir, exeName))
+	exePath, err = exec.LookPath(path.Join(bdir, exeName))
 	if err != nil {
-		return nil, fmt.Errorf("Cannot find %s executable in %s", exeName, bdir)
+		// Let's try in /opt/AGL/bin
+		exePath, err = exec.LookPath(path.Join("opt", "AGL", "bin", exeName))
+		if err != nil {
+			return nil, fmt.Errorf("Cannot find %s executable in %s", exeName, bdir)
+		}
 	}
-	cmd := exec.Command(path, args...)
+	cmd := exec.Command(exePath, args...)
 	cmd.Env = os.Environ()
 	for _, ev := range env {
 		cmd.Env = append(cmd.Env, ev)
