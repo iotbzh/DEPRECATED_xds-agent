@@ -27,7 +27,7 @@ type FileConfig struct {
 // getConfigFromFile reads configuration from a config file.
 // Order to determine which config file is used:
 //  1/ from command line option: "--config myConfig.json"
-//  2/ $HOME/.xds/agent-config.json file
+//  2/ $HOME/.xds/agent/agent-config.json file
 //  3/ <current_dir>/agent-config.json file
 //  4/ <executable dir>/agent-config.json file
 
@@ -38,7 +38,7 @@ func updateConfigFromFile(c *Config, confFile string) (*FileConfig, error) {
 		searchIn = append(searchIn, confFile)
 	}
 	if usr, err := user.Current(); err == nil {
-		searchIn = append(searchIn, path.Join(usr.HomeDir, ".xds", "agent-config.json"))
+		searchIn = append(searchIn, path.Join(usr.HomeDir, ".xds", "agent", "agent-config.json"))
 	}
 	cwd, err := os.Getwd()
 	if err == nil {
@@ -56,22 +56,22 @@ func updateConfigFromFile(c *Config, confFile string) (*FileConfig, error) {
 			break
 		}
 	}
-	fCfg := FileConfig{}
-	if cFile == nil {
-		// No config file found
-		return &fCfg, nil
-	}
+	// Use default settings
+	fCfg := *c.FileConf
 
-	c.Log.Infof("Use config file: %s", *cFile)
+	// Read config file when existing
+	if cFile != nil {
+		c.Log.Infof("Use config file: %s", *cFile)
 
-	// TODO move on viper package to support comments in JSON and also
-	// bind with flags (command line options)
-	// see https://github.com/spf13/viper#working-with-flags
+		// TODO move on viper package to support comments in JSON and also
+		// bind with flags (command line options)
+		// see https://github.com/spf13/viper#working-with-flags
 
-	fd, _ := os.Open(*cFile)
-	defer fd.Close()
-	if err := json.NewDecoder(fd).Decode(&fCfg); err != nil {
-		return nil, err
+		fd, _ := os.Open(*cFile)
+		defer fd.Close()
+		if err := json.NewDecoder(fd).Decode(&fCfg); err != nil {
+			return nil, err
+		}
 	}
 
 	// Support environment variables (IOW ${MY_ENV_VAR} syntax) in agent-config.json

@@ -25,7 +25,6 @@ type Config struct {
 // Config default values
 const (
 	DefaultAPIVersion = "1"
-	DefaultPort       = "8010"
 	DefaultLogLevel   = "error"
 )
 
@@ -39,8 +38,14 @@ func Init(ctx *cli.Context, log *logrus.Logger) (*Config, error) {
 		APIVersion:    DefaultAPIVersion,
 		VersionGitTag: ctx.App.Metadata["git-tag"].(string),
 
-		HTTPPort: DefaultPort,
-		Log:      log,
+		HTTPPort: "8010",
+		FileConf: &FileConfig{
+			LogsDir: "/tmp/logs",
+			SThgConf: &SyncThingConf{
+				Home: "${HOME}/.xds/agent/syncthing-config",
+			},
+		},
+		Log: log,
 	}
 
 	// config file settings overwrite default config

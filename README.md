@@ -79,7 +79,7 @@ The tarball mentioned in previous section includes this file with default settin
 Here is the logic to determine which `agent-config.json` file will be used:
 
 1. from command line option: `--config myConfig.json`
-1. `$HOME/.xds/agent-config.json` file
+1. `$HOME/.xds/agent/agent-config.json` file
 1. `<current dir>/agent-config.json` file
 1. `<xds-agent executable dir>/agent-config.json` file
 
@@ -101,7 +101,7 @@ below corresponds to the default values):
     "xds-apikey": "1234abcezam",
     "syncthing": {
         "binDir": ".",
-        "home": "${HOME}/.xds/syncthing-config",
+        "home": "${HOME}/.xds/agent/syncthing-config",
         "gui-address": "http://localhost:8384",
         "gui-apikey": "1234abcezam",
     }
