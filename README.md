@@ -80,7 +80,7 @@ Here is the logic to determine which `agent-config.json` file will be used:
 
 1. from command line option: `--config myConfig.json`
 1. `$HOME/.xds/agent/agent-config.json` file
-1. `<current dir>/agent-config.json` file
+1. `/etc/xds-agent/agent-config.json` file
 1. `<xds-agent executable dir>/agent-config.json` file
 
 Supported fields in configuration file are (all fields are optional and example

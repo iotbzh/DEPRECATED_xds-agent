@@ -40,14 +40,21 @@ func updateConfigFromFile(c *Config, confFile string) (*FileConfig, error) {
 	if usr, err := user.Current(); err == nil {
 		searchIn = append(searchIn, path.Join(usr.HomeDir, ".xds", "agent", "agent-config.json"))
 	}
-	cwd, err := os.Getwd()
+
+	searchIn = append(searchIn, "/etc/xds-agent/agent-config.json")
+
+	exePath := os.Args[0]
+	ee, _ := os.Executable()
+	exeAbsPath, err := filepath.Abs(ee)
 	if err == nil {
-		searchIn = append(searchIn, path.Join(cwd, "agent-config.json"))
+		exePath, err = filepath.EvalSymlinks(exeAbsPath)
+		if err == nil {
+			exePath = filepath.Dir(ee)
+		} else {
+			exePath = filepath.Dir(exeAbsPath)
+		}
 	}
-	exePath, err := filepath.Abs(filepath.Dir(os.Args[0]))
-	if err == nil {
-		searchIn = append(searchIn, path.Join(exePath, "agent-config.json"))
-	}
+	searchIn = append(searchIn, path.Join(exePath, "agent-config.json"))
 
 	var cFile *string
 	for _, p := range searchIn {
