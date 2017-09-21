@@ -57,11 +57,14 @@ VERBOSE_2 := -v -x
 
 # Release or Debug mode
 ifeq ($(filter 1,$(RELEASE) $(REL)),)
-	GORELEASE=
+	GO_LDFLAGS=
+	# disable compiler optimizations and inlining
+	GO_GCFLAGS=-N -l
 	BUILD_MODE="Debug mode"
 else
 	# optimized code without debug info
-	GORELEASE= -s -w
+	GO_LDFLAGS=-s -w
+	GO_GCFLAGS=
 	BUILD_MODE="Release mode"
 endif
 
@@ -76,7 +79,7 @@ all: tools/syncthing vendor build
 
 build: tools/syncthing/copytobin
 	@echo "### Build XDS agent (version $(VERSION), subversion $(SUB_VERSION)) - $(BUILD_MODE)";
-	@cd $(ROOT_SRCDIR); $(BUILD_ENV_FLAGS) go build $(VERBOSE_$(V)) -i -o $(LOCAL_BINDIR)/xds-agent$(EXT) -ldflags "$(GORELEASE) -X main.AppVersion=$(VERSION) -X main.AppSubVersion=$(SUB_VERSION)" .
+	@cd $(ROOT_SRCDIR); $(BUILD_ENV_FLAGS) go build $(VERBOSE_$(V)) -i -o $(LOCAL_BINDIR)/xds-agent$(EXT) -ldflags "$(GORELEASE) -X main.AppVersion=$(VERSION) -X main.AppSubVersion=$(SUB_VERSION)" -gcflags "$(GO_GCFLAGS)" .
 
 package: clean tools/syncthing vendor build
 	@mkdir -p $(PACKAGE_DIR)/xds-agent
