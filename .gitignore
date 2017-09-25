@@ -4,8 +4,10 @@ package
 **/glide.lock
 **/vendor
 *.zip
-
 debug
+webapp/dist
+webapp/node_modules
+**/npm*.log
 
 # private (prefixed by 2 underscores) directories or files
 __*/

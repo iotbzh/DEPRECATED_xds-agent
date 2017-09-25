@@ -2,17 +2,21 @@ package agent
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"os/signal"
+	"path/filepath"
 	"syscall"
+	"time"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
 	"github.com/iotbzh/xds-agent/lib/syncthing"
 	"github.com/iotbzh/xds-agent/lib/xdsconfig"
-	"github.com/iotbzh/xds-agent/lib/webserver"
 )
+
+const cookieMaxAge = "3600"
 
 // Context holds the Agent context structure
 type Context struct {
@@ -22,8 +26,14 @@ type Context struct {
 	SThg        *st.SyncThing
 	SThgCmd     *exec.Cmd
 	SThgInotCmd *exec.Cmd
-	WWWServer   *webserver.ServerService
-	Exit        chan os.Signal
+
+	webServer     *WebServer
+	xdsServers map[string]*XdsServer
+	sessions      *Sessions
+	events        *Events
+	projects      *Projects
+
+	Exit chan os.Signal
 }
 
 // NewAgent Create a new instance of Agent
@@ -48,6 +58,10 @@ func NewAgent(cliCtx *cli.Context) *Context {
 		ProgName: cliCtx.App.Name,
 		Log:      log,
 		Exit:     make(chan os.Signal, 1),
+
+		webServer:     nil,
+		xdsServers: make(map[string]*XdsServer),
+		events:        nil,
 	}
 
 	// register handler on SIGTERM / exit
@@ -55,6 +69,114 @@ func NewAgent(cliCtx *cli.Context) *Context {
 	go handlerSigTerm(&ctx)
 
 	return &ctx
+}
+
+// Run Main function called to run agent
+func (ctx *Context) Run() (int, error) {
+	var err error
+
+	// Logs redirected into a file when logfile option or logsDir config is set
+	ctx.Config.LogVerboseOut = os.Stderr
+	if ctx.Config.FileConf.LogsDir != "" {
+		if ctx.Config.Options.LogFile != "stdout" {
+			logFile := ctx.Config.Options.LogFile
+
+			fdL, err := os.OpenFile(logFile, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0666)
+			if err != nil {
+				msgErr := fmt.Errorf("Cannot create log file %s", logFile)
+				return int(syscall.EPERM), msgErr
+			}
+			ctx.Log.Out = fdL
+
+			ctx._logPrint("Logging file: %s\n", logFile)
+		}
+
+		logFileHTTPReq := filepath.Join(ctx.Config.FileConf.LogsDir, "xds-agent-verbose.log")
+		fdLH, err := os.OpenFile(logFileHTTPReq, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0666)
+		if err != nil {
+			msgErr := fmt.Errorf("Cannot create log file %s", logFileHTTPReq)
+			return int(syscall.EPERM), msgErr
+		}
+		ctx.Config.LogVerboseOut = fdLH
+
+		ctx._logPrint("Logging file for HTTP requests: %s\n", logFileHTTPReq)
+	}
+
+	// Create syncthing instance when section "syncthing" is present in config.json
+	if ctx.Config.FileConf.SThgConf != nil {
+		ctx.SThg = st.NewSyncThing(ctx.Config, ctx.Log)
+	}
+
+	// Start local instance of Syncthing and Syncthing-notify
+	if ctx.SThg != nil {
+		ctx.Log.Infof("Starting Syncthing...")
+		ctx.SThgCmd, err = ctx.SThg.Start()
+		if err != nil {
+			return 2, err
+		}
+		fmt.Printf("Syncthing started (PID %d)\n", ctx.SThgCmd.Process.Pid)
+
+		ctx.Log.Infof("Starting Syncthing-inotify...")
+		ctx.SThgInotCmd, err = ctx.SThg.StartInotify()
+		if err != nil {
+			return 2, err
+		}
+		fmt.Printf("Syncthing-inotify started (PID %d)\n", ctx.SThgInotCmd.Process.Pid)
+
+		// Establish connection with local Syncthing (retry if connection fail)
+		time.Sleep(3 * time.Second)
+		maxRetry := 30
+		retry := maxRetry
+		for retry > 0 {
+			if err := ctx.SThg.Connect(); err == nil {
+				break
+			}
+			ctx.Log.Infof("Establishing connection to Syncthing (retry %d/%d)", retry, maxRetry)
+			time.Sleep(time.Second)
+			retry--
+		}
+		if err != nil || retry == 0 {
+			return 2, err
+		}
+
+		// Retrieve Syncthing config
+		id, err := ctx.SThg.IDGet()
+		if err != nil {
+			return 2, err
+		}
+		ctx.Log.Infof("Local Syncthing ID: %s", id)
+
+	} else {
+		ctx.Log.Infof("Cloud Sync / Syncthing not supported")
+	}
+
+	// Create Web Server
+	ctx.webServer = NewWebServer(ctx)
+
+	// Sessions manager
+	ctx.sessions = NewClientSessions(ctx, cookieMaxAge)
+
+	// Create events management
+	ctx.events = NewEvents(ctx)
+
+	// Create projects management
+	ctx.projects = NewProjects(ctx, ctx.SThg)
+
+	// Run Web Server until exit requested (blocking call)
+	if err = ctx.webServer.Serve(); err != nil {
+		log.Println(err)
+		return 3, err
+	}
+
+	return 4, fmt.Errorf("Program exited")
+}
+
+// Helper function to log message on both stdout and logger
+func (ctx *Context) _logPrint(format string, args ...interface{}) {
+	fmt.Printf(format, args...)
+	if ctx.Log.Out != os.Stdout {
+		ctx.Log.Infof(format, args...)
+	}
 }
 
 // Handle exit and properly stop/close all stuff
@@ -68,9 +190,9 @@ func handlerSigTerm(ctx *Context) {
 		ctx.SThg.Stop()
 		ctx.SThg.StopInotify()
 	}
-	if ctx.WWWServer != nil {
+	if ctx.webServer != nil {
 		ctx.Log.Infof("Stoping Web server...")
-		ctx.WWWServer.Stop()
+		ctx.webServer.Stop()
 	}
 	os.Exit(1)
 }

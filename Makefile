@@ -8,7 +8,6 @@ SYNCTHING_VERSION = 0.14.28
 SYNCTHING_INOTIFY_VERSION = 0.8.6
 
 
-
 # Retrieve git tag/commit to set sub-version string
 ifeq ($(origin SUB_VERSION), undefined)
 	SUB_VERSION := $(shell git describe --exact-match --tags 2>/dev/null | sed 's/^v//')
@@ -24,12 +23,12 @@ ifeq ($(origin SUB_VERSION), undefined)
 	endif
 endif
 
-# for backward compatibility
-DESTDIR := $(INSTALL_DIR)
-
-# Configurable variables for installation (default /usr/local/...)
+# Configurable variables for installation (default /opt/AGL/...)
 ifeq ($(origin DESTDIR), undefined)
-	DESTDIR := /usr/local/bin
+	DESTDIR := /opt/AGL/xds/agent
+endif
+ifeq ($(origin DESTDIR_WWW), undefined)
+	DESTDIR_WWW := $(DESTDIR)/www
 endif
 
 HOST_GOOS=$(shell go env GOOS)
@@ -75,27 +74,14 @@ else
 endif
 
 
-all: tools/syncthing vendor build
+all: tools/syncthing build
 
-build: tools/syncthing/copytobin
+.PHONY: build
+build: vendor xds webapp
+
+xds: scripts tools/syncthing/copytobin
 	@echo "### Build XDS agent (version $(VERSION), subversion $(SUB_VERSION)) - $(BUILD_MODE)";
 	@cd $(ROOT_SRCDIR); $(BUILD_ENV_FLAGS) go build $(VERBOSE_$(V)) -i -o $(LOCAL_BINDIR)/xds-agent$(EXT) -ldflags "$(GORELEASE) -X main.AppVersion=$(VERSION) -X main.AppSubVersion=$(SUB_VERSION)" -gcflags "$(GO_GCFLAGS)" .
-
-package: clean tools/syncthing vendor build
-	@mkdir -p $(PACKAGE_DIR)/xds-agent
-	@cp agent-config.json.in $(PACKAGE_DIR)/xds-agent/agent-config.json
-	@cp -a $(LOCAL_BINDIR)/* $(PACKAGE_DIR)/xds-agent
-	cd $(PACKAGE_DIR) && zip -r $(ROOT_SRCDIR)/$(PACKAGE_ZIPFILE) ./xds-agent
-
-.PHONY: package-all
-package-all:
-	@echo "# Build linux amd64..."
-	GOOS=linux GOARCH=amd64 RELEASE=1 make -f $(ROOT_SRCDIR)/Makefile package
-	@echo "# Build windows amd64..."
-	GOOS=windows GOARCH=amd64 RELEASE=1 make -f $(ROOT_SRCDIR)/Makefile package
-	@echo "# Build darwin amd64..."
-	GOOS=darwin GOARCH=amd64 RELEASE=1 make -f $(ROOT_SRCDIR)/Makefile package
-	make -f $(ROOT_SRCDIR)/Makefile clean
 
 test: tools/glide
 	go test --race $(shell $(LOCAL_TOOLSDIR)/glide novendor)
@@ -114,18 +100,49 @@ debug: build/xds tools/syncthing/copytobin
 
 .PHONY: clean
 clean:
-	rm -rf $(LOCAL_BINDIR)/* debug $(ROOT_GOPRJ)/pkg/*/$(REPOPATH) $(PACKAGE_DIR)
+	rm -rf $(LOCAL_BINDIR)/* $(ROOT_SRCDIR)/debug $(ROOT_GOPRJ)/pkg/*/$(REPOPATH) $(PACKAGE_DIR)
 
 .PHONY: distclean
 distclean: clean
-	rm -rf $(LOCAL_BINDIR) tools glide.lock vendor $(ROOT_SRCDIR)/*.zip
+	cd $(ROOT_SRCDIR) && rm -rf $(LOCAL_BINDIR) ./tools ./glide.lock ./vendor ./*.zip ./webapp/node_modules ./webapp/dist
+
+webapp: webapp/install
+	(cd webapp && gulp build)
+
+webapp/debug:
+	(cd webapp && gulp watch &)
+
+webapp/install:
+	(cd webapp && npm install)
+	@if [ -d ${DESTDIR}/usr/local/etc ]; then rm -rf ${DESTDIR}/usr; fi
 
 .PHONY: install
 install: all
 	mkdir -p $(DESTDIR) && cp $(LOCAL_BINDIR)/* $(DESTDIR)
+	mkdir -p $(DESTDIR_WWW) && cp -a webapp/dist/* $(DESTDIR_WWW)
+
+package: clean tools/syncthing vendor build
+	@mkdir -p $(PACKAGE_DIR)/xds-agent
+	@cp agent-config.json.in $(PACKAGE_DIR)/xds-agent/agent-config.json
+	@cp -a $(LOCAL_BINDIR)/* $(PACKAGE_DIR)/xds-agent
+	cd $(PACKAGE_DIR) && zip -r $(ROOT_SRCDIR)/$(PACKAGE_ZIPFILE) ./xds-agent
+
+.PHONY: package-all
+package-all:
+	@echo "# Build linux amd64..."
+	GOOS=linux GOARCH=amd64 RELEASE=1 make -f $(ROOT_SRCDIR)/Makefile package
+	@echo "# Build windows amd64..."
+	GOOS=windows GOARCH=amd64 RELEASE=1 make -f $(ROOT_SRCDIR)/Makefile package
+	@echo "# Build darwin amd64..."
+	GOOS=darwin GOARCH=amd64 RELEASE=1 make -f $(ROOT_SRCDIR)/Makefile package
+	make -f $(ROOT_SRCDIR)/Makefile clean
 
 vendor: tools/glide glide.yaml
 	$(LOCAL_TOOLSDIR)/glide install --strip-vendor
+
+vendor/debug: vendor
+	(cd vendor/github.com/iotbzh && \
+		rm -rf xds-common && ln -s ../../../../xds-common )
 
 .PHONY: tools/glide
 tools/glide:
@@ -144,7 +161,7 @@ tools/syncthing:
 	SYNCTHING_INOTIFY_VERSION=$(SYNCTHING_INOTIFY_VERSION) \
 	./scripts/get-syncthing.sh; }
 
-.PHONY:
+.PHONY: tools/syncthing/copytobin
 tools/syncthing/copytobin:
 	@test -e $(LOCAL_TOOLSDIR)/syncthing$(EXT) -a -e $(LOCAL_TOOLSDIR)/syncthing-inotify$(EXT) || { echo "Please execute first: make tools/syncthing\n"; exit 1; }
 	@mkdir -p $(LOCAL_BINDIR)

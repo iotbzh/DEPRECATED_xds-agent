@@ -3,16 +3,11 @@
 package main
 
 import (
-	"fmt"
-	"log"
 	"os"
-	"time"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
 	"github.com/iotbzh/xds-agent/lib/agent"
-	"github.com/iotbzh/xds-agent/lib/syncthing"
-	"github.com/iotbzh/xds-agent/lib/webserver"
 	"github.com/iotbzh/xds-agent/lib/xdsconfig"
 )
 
@@ -39,62 +34,18 @@ func xdsAgent(cliCtx *cli.Context) error {
 	var err error
 
 	// Create Agent context
-	ctx := agent.NewAgent(cliCtx)
+	ctxAgent := agent.NewAgent(cliCtx)
 
 	// Load config
-	ctx.Config, err = xdsconfig.Init(cliCtx, ctx.Log)
+	ctxAgent.Config, err = xdsconfig.Init(cliCtx, ctxAgent.Log)
 	if err != nil {
 		return cli.NewExitError(err, 2)
 	}
 
-	// Start local instance of Syncthing and Syncthing-notify
-	ctx.SThg = st.NewSyncThing(ctx.Config, ctx.Log)
+	// Run Agent (main loop)
+	errCode, err := ctxAgent.Run()
 
-	ctx.Log.Infof("Starting Syncthing...")
-	ctx.SThgCmd, err = ctx.SThg.Start()
-	if err != nil {
-		return cli.NewExitError(err, 2)
-	}
-	fmt.Printf("Syncthing started (PID %d)\n", ctx.SThgCmd.Process.Pid)
-
-	ctx.Log.Infof("Starting Syncthing-inotify...")
-	ctx.SThgInotCmd, err = ctx.SThg.StartInotify()
-	if err != nil {
-		return cli.NewExitError(err, 2)
-	}
-	fmt.Printf("Syncthing-inotify started (PID %d)\n", ctx.SThgInotCmd.Process.Pid)
-
-	// Establish connection with local Syncthing (retry if connection fail)
-	time.Sleep(3 * time.Second)
-	maxRetry := 30
-	retry := maxRetry
-	for retry > 0 {
-		if err := ctx.SThg.Connect(); err == nil {
-			break
-		}
-		ctx.Log.Infof("Establishing connection to Syncthing (retry %d/%d)", retry, maxRetry)
-		time.Sleep(time.Second)
-		retry--
-	}
-	if err != nil || retry == 0 {
-		return cli.NewExitError(err, 2)
-	}
-
-	// Retrieve Syncthing config
-	id, err := ctx.SThg.IDGet()
-	if err != nil {
-		return cli.NewExitError(err, 2)
-	}
-	ctx.Log.Infof("Local Syncthing ID: %s", id)
-
-	// Create and start Web Server
-	ctx.WWWServer = webserver.New(ctx.Config, ctx.Log)
-	if err = ctx.WWWServer.Serve(); err != nil {
-		log.Println(err)
-		return cli.NewExitError(err, 3)
-	}
-
-	return cli.NewExitError("Program exited ", 4)
+	return cli.NewExitError(err, errCode)
 }
 
 // main
@@ -126,7 +77,13 @@ func main() {
 			Name:   "log, l",
 			Value:  "error",
 			Usage:  "logging level (supported levels: panic, fatal, error, warn, info, debug)\n\t",
-			EnvVar: "LOG_LEVEL",
+			EnvVar: "XDS_LOGLEVEL",
+		},
+		cli.StringFlag{
+			Name:   "logfile",
+			Value:  "stdout",
+			Usage:  "filename where logs will be redirected (default stdout)\n\t",
+			EnvVar: "XDS_LOGFILE",
 		},
 	}
 

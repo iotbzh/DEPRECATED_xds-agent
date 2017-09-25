@@ -1,11 +1,10 @@
-package session
+package agent
 
 import (
 	"encoding/base64"
 	"strconv"
 	"time"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/gin-gonic/gin"
 	"github.com/googollee/go-socket.io"
 	uuid "github.com/satori/go.uuid"
@@ -36,29 +35,27 @@ type ClientSession struct {
 
 // Sessions holds client sessions
 type Sessions struct {
-	router       *gin.Engine
+	*Context
 	cookieMaxAge int64
 	sessMap      map[string]ClientSession
 	mutex        sync.Mutex
-	log          *logrus.Logger
 	stop         chan struct{} // signals intentional stop
 }
 
 // NewClientSessions .
-func NewClientSessions(router *gin.Engine, log *logrus.Logger, cookieMaxAge string) *Sessions {
+func NewClientSessions(ctx *Context, cookieMaxAge string) *Sessions {
 	ckMaxAge, err := strconv.ParseInt(cookieMaxAge, 10, 0)
 	if err != nil {
 		ckMaxAge = 0
 	}
 	s := Sessions{
-		router:       router,
+		Context:      ctx,
 		cookieMaxAge: ckMaxAge,
 		sessMap:      make(map[string]ClientSession),
 		mutex:        sync.NewMutex(),
-		log:          log,
 		stop:         make(chan struct{}),
 	}
-	s.router.Use(s.Middleware())
+	s.webServer.router.Use(s.Middleware())
 
 	// Start monitoring of sessions Map (use to manage expiration and cleanup)
 	go s.monitorSessMap()
@@ -174,7 +171,7 @@ func (s *Sessions) newSession(prefix string) *ClientSession {
 
 	s.sessMap[se.ID] = se
 
-	s.log.Debugf("NEW session (%d): %s", len(s.sessMap), id)
+	s.Log.Debugf("NEW session (%d): %s", len(s.sessMap), id)
 	return &se
 }
 
@@ -202,22 +199,22 @@ func (s *Sessions) monitorSessMap() {
 	for {
 		select {
 		case <-s.stop:
-			s.log.Debugln("Stop monitorSessMap")
+			s.Log.Debugln("Stop monitorSessMap")
 			return
 		case <-time.After(sessionMonitorTime * time.Second):
 			if dbgFullTrace {
-				s.log.Debugf("Sessions Map size: %d", len(s.sessMap))
-				s.log.Debugf("Sessions Map : %v", s.sessMap)
+				s.Log.Debugf("Sessions Map size: %d", len(s.sessMap))
+				s.Log.Debugf("Sessions Map : %v", s.sessMap)
 			}
 
 			if len(s.sessMap) > maxSessions {
-				s.log.Errorln("TOO MUCH sessions, cleanup old ones !")
+				s.Log.Errorln("TOO MUCH sessions, cleanup old ones !")
 			}
 
 			s.mutex.Lock()
 			for _, ss := range s.sessMap {
 				if ss.expireAt.Sub(time.Now()) < 0 {
-					s.log.Debugf("Delete expired session id: %s", ss.ID)
+					//SEB DEBUG s.Log.Debugf("Delete expired session id: %s", ss.ID)
 					delete(s.sessMap, ss.ID)
 				}
 			}

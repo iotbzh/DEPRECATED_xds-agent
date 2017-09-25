@@ -15,7 +15,7 @@
                 "DEBUG_MODE": "1",
                 "ROOT_DIR": "${workspaceRoot}/../../../.."
             },
-            "args": ["-log", "debug", "-c", "config.json.in"],
+            "args": ["-log", "debug", "-c", "__agent-config_local_dev.json"],
             "showLog": false
         }
     ]
