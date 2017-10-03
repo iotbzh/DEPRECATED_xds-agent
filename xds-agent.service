@@ -1,0 +1,9 @@
+[Unit]
+Description=XDS Agent
+
+[Service]
+User=claneys
+ExecStart=/opt/AGL/xds/agent/xds-agent &
+
+[Install]
+WantedBy=multi-user.target
