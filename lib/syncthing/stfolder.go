@@ -72,16 +72,17 @@ func (s *SyncThing) FolderChange(f FolderChangeArg) (string, error) {
 		return "", err
 	}
 
+	stClientID := f.SyncThingID
 	// Add new Device if needed
 	var devID protocol.DeviceID
-	if err := devID.UnmarshalText([]byte(f.SyncThingID)); err != nil {
+	if err := devID.UnmarshalText([]byte(stClientID)); err != nil {
 		s.log.Errorf("not a valid device id (err %v)", err)
 		return "", err
 	}
 
 	newDevice := stconfig.DeviceConfiguration{
 		DeviceID:  devID,
-		Name:      f.SyncThingID,
+		Name:      stClientID,
 		Addresses: []string{"dynamic"},
 	}
 
@@ -102,7 +103,7 @@ func (s *SyncThing) FolderChange(f FolderChangeArg) (string, error) {
 		label = strings.Split(id, "/")[0]
 	}
 	if id = f.ID; id == "" {
-		id = f.SyncThingID[0:15] + "_" + label
+		id = stClientID[0:15] + "_" + label
 	}
 
 	// Resolve local path
