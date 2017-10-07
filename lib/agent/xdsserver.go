@@ -13,7 +13,7 @@ import (
 	"github.com/iotbzh/xds-agent/lib/xdsconfig"
 	common "github.com/iotbzh/xds-common/golib"
 	uuid "github.com/satori/go.uuid"
-	sio_client "github.com/zhouhui8915/go-socket.io-client"
+	sio_client "github.com/sebd71/go-socket.io-client"
 )
 
 // Server .

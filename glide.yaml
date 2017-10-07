@@ -17,8 +17,8 @@ import:
   version: ^1.19.1
 - package: github.com/Sirupsen/logrus
   version: ^0.11.5
-- package: github.com/zhouhui8915/go-socket.io-client
-  version: master
+- package: github.com/sebd71/go-socket.io-client
+  version: 46defcb47f
 - package: github.com/satori/go.uuid
   version: ^1.1.0
 - package: github.com/iotbzh/xds-common
