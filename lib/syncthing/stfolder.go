@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	common "github.com/iotbzh/xds-common/golib"
+	"github.com/iotbzh/xds-server/lib/folder"
 	stconfig "github.com/syncthing/syncthing/lib/config"
 	"github.com/syncthing/syncthing/lib/protocol"
 )
@@ -17,6 +18,48 @@ type FolderChangeArg struct {
 	RelativePath string
 	SyncThingID  string
 	ShareRootDir string
+}
+
+// FolderLoadFromStConfig Load/Retrieve folder config from syncthing database
+func (s *SyncThing) FolderLoadFromStConfig(f *[]folder.FolderConfig) error {
+
+	defaultSdk := "" // cannot know which was the default sdk
+
+	stCfg, err := s.ConfigGet()
+	if err != nil {
+		return err
+	}
+	if len(stCfg.Devices) < 1 {
+		return fmt.Errorf("Cannot load syncthing config: no device defined")
+	}
+	devID := stCfg.Devices[0].DeviceID.String()
+	if devID == s.MyID {
+		if len(stCfg.Devices) < 2 {
+			return fmt.Errorf("Cannot load syncthing config: no valid device found")
+		}
+		devID = stCfg.Devices[1].DeviceID.String()
+	}
+
+	for _, stFld := range stCfg.Folders {
+		/*
+			cliPath := strings.TrimPrefix(stFld.Path, s.conf.FileConf.ShareRootDir)
+			if cliPath == "" {
+				cliPath = stFld.Path
+			}*/
+		cliPath := stFld.Path
+		*f = append(*f, folder.FolderConfig{
+			ID:            stFld.ID,
+			Label:         stFld.Label,
+			ClientPath:    strings.TrimRight(cliPath, "/"),
+			Type:          folder.TypeCloudSync,
+			Status:        folder.StatusDisable,
+			DefaultSdk:    defaultSdk,
+			RootPath:      "", //s.conf.FileConf.ShareRootDir,
+			DataCloudSync: folder.CloudSyncConfig{SyncThingID: devID},
+		})
+	}
+
+	return nil
 }
 
 // FolderChange is called when configuration has changed
@@ -73,7 +116,7 @@ func (s *SyncThing) FolderChange(f FolderChangeArg) (string, error) {
 	folder := stconfig.FolderConfiguration{
 		ID:            id,
 		Label:         label,
-		RawPath:       pathCli,
+		Path:          pathCli,
 		AutoNormalize: true,
 	}
 
