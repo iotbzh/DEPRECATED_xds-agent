@@ -10,10 +10,12 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
 	common "github.com/iotbzh/xds-common/golib"
+	uuid "github.com/satori/go.uuid"
 )
 
 // Config parameters (json format) of /config command
 type Config struct {
+	AgentUID      string
 	Version       string
 	APIVersion    string
 	VersionGitTag string
@@ -43,8 +45,12 @@ func Init(ctx *cli.Context, log *logrus.Logger) (*Config, error) {
 	defaultWebAppDir := "${EXEPATH}/www"
 	defaultSTHomeDir := "${HOME}/.xds/agent/syncthing-config"
 
+	// TODO: allocate uuid only the first time and save+reuse it later
+	uuid := uuid.NewV1().String()
+
 	// Define default configuration
 	c := Config{
+		AgentUID:      uuid,
 		Version:       ctx.App.Metadata["version"].(string),
 		APIVersion:    DefaultAPIVersion,
 		VersionGitTag: ctx.App.Metadata["git-tag"].(string),
@@ -59,7 +65,6 @@ func Init(ctx *cli.Context, log *logrus.Logger) (*Config, error) {
 			HTTPPort:  "8800",
 			WebAppDir: defaultWebAppDir,
 			LogsDir:   "/tmp/logs",
-			// SEB XDSAPIKey: "1234abcezam",
 			ServersConf: []XDSServerConf{
 				XDSServerConf{
 					URL:       "http://localhost:8000",
@@ -107,6 +112,8 @@ func Init(ctx *cli.Context, log *logrus.Logger) (*Config, error) {
 			return nil, fmt.Errorf("Cannot create logs dir: %v", err)
 		}
 	}
+
+	c.Log.Infoln("Agent UUID:     ", uuid)
 	c.Log.Infoln("Logs file:      ", c.Options.LogFile)
 	c.Log.Infoln("Logs directory: ", c.FileConf.LogsDir)
 

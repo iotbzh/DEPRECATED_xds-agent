@@ -20,18 +20,19 @@ const cookieMaxAge = "3600"
 
 // Context holds the Agent context structure
 type Context struct {
-	ProgName    string
-	Config      *xdsconfig.Config
-	Log         *logrus.Logger
-	SThg        *st.SyncThing
-	SThgCmd     *exec.Cmd
-	SThgInotCmd *exec.Cmd
+	ProgName      string
+	Config        *xdsconfig.Config
+	Log           *logrus.Logger
+	LogLevelSilly bool
+	SThg          *st.SyncThing
+	SThgCmd       *exec.Cmd
+	SThgInotCmd   *exec.Cmd
 
-	webServer     *WebServer
+	webServer  *WebServer
 	xdsServers map[string]*XdsServer
-	sessions      *Sessions
-	events        *Events
-	projects      *Projects
+	sessions   *Sessions
+	events     *Events
+	projects   *Projects
 
 	Exit chan os.Signal
 }
@@ -53,15 +54,18 @@ func NewAgent(cliCtx *cli.Context) *Context {
 	}
 	log.Formatter = &logrus.TextFormatter{}
 
+	sillyVal, sillyLog := os.LookupEnv("XDS_LOG_SILLY")
+
 	// Define default configuration
 	ctx := Context{
-		ProgName: cliCtx.App.Name,
-		Log:      log,
-		Exit:     make(chan os.Signal, 1),
+		ProgName:      cliCtx.App.Name,
+		Log:           log,
+		LogLevelSilly: (sillyLog && sillyVal == "1"),
+		Exit:          make(chan os.Signal, 1),
 
-		webServer:     nil,
+		webServer:  nil,
 		xdsServers: make(map[string]*XdsServer),
-		events:        nil,
+		events:     nil,
 	}
 
 	// register handler on SIGTERM / exit

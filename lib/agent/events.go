@@ -18,7 +18,7 @@ const (
 	EVTProjectChange = "project-state-change" // data type ProjectConfig
 )
 
-var EVTAllList = []string{
+var _EVTAllList = []string{
 	EVTServerConfig,
 	EVTProjectAdd,
 	EVTProjectDelete,
@@ -33,7 +33,6 @@ type EventMsg struct {
 }
 
 type EventDef struct {
-	// SEB cbs  []EventsCB
 	sids map[string]int
 }
 
@@ -45,7 +44,7 @@ type Events struct {
 // NewEvents creates an instance of Events
 func NewEvents(ctx *Context) *Events {
 	evMap := make(map[string]*EventDef)
-	for _, ev := range EVTAllList {
+	for _, ev := range _EVTAllList {
 		evMap[ev] = &EventDef{
 			sids: make(map[string]int),
 		}
@@ -58,12 +57,12 @@ func NewEvents(ctx *Context) *Events {
 
 // GetList returns the list of all supported events
 func (e *Events) GetList() []string {
-	return EVTAllList
+	return _EVTAllList
 }
 
 // Register Used by a client/session to register to a specific (or all) event(s)
 func (e *Events) Register(evName, sessionID string) error {
-	evs := EVTAllList
+	evs := _EVTAllList
 	if evName != EVTAll {
 		if _, ok := e.eventsMap[evName]; !ok {
 			return fmt.Errorf("Unsupported event type name")
@@ -78,7 +77,7 @@ func (e *Events) Register(evName, sessionID string) error {
 
 // UnRegister Used by a client/session to unregister event(s)
 func (e *Events) UnRegister(evName, sessionID string) error {
-	evs := EVTAllList
+	evs := _EVTAllList
 	if evName != EVTAll {
 		if _, ok := e.eventsMap[evName]; !ok {
 			return fmt.Errorf("Unsupported event type name")
@@ -102,7 +101,9 @@ func (e *Events) Emit(evName string, data interface{}) error {
 		return fmt.Errorf("Unsupported event type")
 	}
 
-	e.Log.Debugf("Emit Event %s: %v", evName, data)
+	if e.LogLevelSilly {
+		e.Log.Debugf("Emit Event %s: %v", evName, data)
+	}
 
 	firstErr = nil
 	evm := e.eventsMap[evName]

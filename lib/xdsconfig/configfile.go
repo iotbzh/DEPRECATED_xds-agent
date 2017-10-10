@@ -26,10 +26,10 @@ type XDSServerConf struct {
 }
 
 type FileConfig struct {
-	HTTPPort  string `json:"httpPort"`
-	WebAppDir string `json:"webAppDir"`
-	LogsDir   string `json:"logsDir"`
-	// SEB A SUP ? XDSAPIKey string         `json:"xds-apikey"`
+	HTTPPort    string          `json:"httpPort"`
+	WebAppDir   string          `json:"webAppDir"`
+	LogsDir     string          `json:"logsDir"`
+	XDSAPIKey   string          `json:"xds-apikey"`
 	ServersConf []XDSServerConf `json:"xdsServers"`
 	SThgConf    *SyncThingConf  `json:"syncthing"`
 }

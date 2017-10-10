@@ -6,22 +6,21 @@ import (
 	"strings"
 
 	common "github.com/iotbzh/xds-common/golib"
-	"github.com/iotbzh/xds-server/lib/folder"
 	stconfig "github.com/syncthing/syncthing/lib/config"
 	"github.com/syncthing/syncthing/lib/protocol"
 )
 
-// FIXME remove and use an interface on xdsconfig.FolderConfig
+// FolderChangeArg argument structure used by FolderChange
 type FolderChangeArg struct {
 	ID           string
 	Label        string
 	RelativePath string
 	SyncThingID  string
-	ShareRootDir string
 }
 
 // FolderLoadFromStConfig Load/Retrieve folder config from syncthing database
-func (s *SyncThing) FolderLoadFromStConfig(f *[]folder.FolderConfig) error {
+/*
+func (s *SyncThing) FolderLoadFromStConfig(f *[]XdsFolderConfig) error {
 
 	defaultSdk := "" // cannot know which was the default sdk
 
@@ -41,26 +40,21 @@ func (s *SyncThing) FolderLoadFromStConfig(f *[]folder.FolderConfig) error {
 	}
 
 	for _, stFld := range stCfg.Folders {
-		/*
-			cliPath := strings.TrimPrefix(stFld.Path, s.conf.FileConf.ShareRootDir)
-			if cliPath == "" {
-				cliPath = stFld.Path
-			}*/
-		cliPath := stFld.Path
-		*f = append(*f, folder.FolderConfig{
+		*f = append(*f, XdsFolderConfig{
 			ID:            stFld.ID,
 			Label:         stFld.Label,
-			ClientPath:    strings.TrimRight(cliPath, "/"),
-			Type:          folder.TypeCloudSync,
-			Status:        folder.StatusDisable,
+			ClientPath:    strings.TrimRight(stFld.Path, "/"),
+			Type:          XdsTypeCloudSync,
+			Status:        StatusDisable,
 			DefaultSdk:    defaultSdk,
-			RootPath:      "", //s.conf.FileConf.ShareRootDir,
-			DataCloudSync: folder.CloudSyncConfig{SyncThingID: devID},
+			RootPath:      "",
+			DataCloudSync: XdsCloudSyncConfig{SyncThingID: devID},
 		})
 	}
 
 	return nil
 }
+*/
 
 // FolderChange is called when configuration has changed
 func (s *SyncThing) FolderChange(f FolderChangeArg) (string, error) {
@@ -111,8 +105,6 @@ func (s *SyncThing) FolderChange(f FolderChangeArg) (string, error) {
 	if err != nil {
 		pathCli = f.RelativePath
 	}
-	// SEB still need ShareRootDir ? a sup
-	// pathCli := filepath.Join(f.ShareRootDir, f.RelativePath)
 
 	folder := stconfig.FolderConfiguration{
 		ID:            id,
@@ -146,11 +138,8 @@ func (s *SyncThing) FolderChange(f FolderChangeArg) (string, error) {
 	}
 
 	err = s.ConfigSet(stCfg)
-	if err != nil {
-		s.log.Errorln(err)
-	}
 
-	return id, nil
+	return id, err
 }
 
 // FolderDelete is called to delete a folder config

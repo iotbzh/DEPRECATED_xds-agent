@@ -14,15 +14,7 @@ type Projects struct {
 	*Context
 	SThg     *st.SyncThing
 	projects map[string]*IPROJECT
-	//SEB registerCB []RegisteredCB
 }
-
-/* SEB
-type RegisteredCB struct {
-	cb   *EventCB
-	data *EventCBData
-}
-*/
 
 // Mutex to make add/delete atomic
 var pjMutex = sync.NewMutex()
@@ -33,7 +25,6 @@ func NewProjects(ctx *Context, st *st.SyncThing) *Projects {
 		Context:  ctx,
 		SThg:     st,
 		projects: make(map[string]*IPROJECT),
-		//registerCB: []RegisteredCB{},
 	}
 }
 
@@ -51,26 +42,19 @@ func (p *Projects) Init(server *XdsServer) error {
 		if svr.Disabled {
 			continue
 		}
-		xFlds := []FolderConfig{}
-		if err := svr.HTTPGet("/folders", &xFlds); err != nil {
+		xFlds := []XdsFolderConfig{}
+		if err := svr.GetFolders(&xFlds); err != nil {
 			errMsg += fmt.Sprintf("Cannot retrieve folders config of XDS server ID %s : %v \n", svr.ID, err.Error())
 			continue
 		}
-		p.Log.Debugf("Server %s, %d projects detected", svr.ID[:8], len(xFlds))
+		p.Log.Debugf("Connected to XDS Server %s, %d projects detected", svr.ID, len(xFlds))
 		for _, prj := range xFlds {
 			newP := svr.FolderToProject(prj)
-			if /*nPrj*/ _, err := p.createUpdate(newP, false, true); err != nil {
+			if _, err := p.createUpdate(newP, false, true); err != nil {
 				errMsg += "Error while creating project id " + prj.ID + ": " + err.Error() + "\n "
 				continue
 			}
-
-			/* FIXME emit EVTProjectChange event ?
-			if err := p.events.Emit(EVTProjectChange, *nPrj); err != nil {
-				p.Log.Warningf("Cannot notify project change: %v", err)
-			}
-			*/
 		}
-
 	}
 
 	p.Log.Infof("Number of loaded Projects: %d", len(p.projects))
@@ -161,7 +145,6 @@ func (p *Projects) createUpdate(newF ProjectConfig, create bool, initial bool) (
 	// SYNCTHING
 	case TypeCloudSync:
 		if p.SThg != nil {
-			/*SEB fld = f.SThg.NewFolderST(f.Conf)*/
 			fld = NewProjectST(p.Context, svr)
 		} else {
 			return nil, fmt.Errorf("Cloud Sync project not supported")
@@ -179,12 +162,16 @@ func (p *Projects) createUpdate(newF ProjectConfig, create bool, initial bool) (
 		// Add project on server
 		if newPrj, err = fld.Add(newF); err != nil {
 			newF.Status = StatusErrorConfig
-			log.Printf("ERROR Adding folder: %v\n", err)
+			log.Printf("ERROR Adding project: %v\n", err)
 			return newPrj, err
 		}
 	} else {
 		// Just update project config
-		newPrj = fld.SetProject(newF)
+		if newPrj, err = fld.UpdateProject(newF); err != nil {
+			newF.Status = StatusErrorConfig
+			log.Printf("ERROR Updating project: %v\n", err)
+			return newPrj, err
+		}
 	}
 
 	// Sanity check

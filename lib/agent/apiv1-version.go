@@ -33,7 +33,7 @@ func (s *APIService) getVersion(c *gin.Context) {
 	svrVer := []version{}
 	for _, svr := range s.xdsServers {
 		res := version{}
-		if err := svr.HTTPGet("/version", &res); err != nil {
+		if err := svr.GetVersion(&res); err != nil {
 			common.APIError(c, "Cannot retrieve version of XDS server ID %s : %v", svr.ID, err.Error())
 			return
 		}

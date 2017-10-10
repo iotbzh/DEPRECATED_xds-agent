@@ -12,7 +12,8 @@
             "env": {
                 "GOPATH": "${workspaceRoot}/../../../..:${env:GOPATH}",
                 "WORKSPACE_ROOT": "${workspaceRoot}",
-                "DEBUG_MODE": "1",
+                "XDS_DEBUG_MODE": "1",
+                "XDS_LOG_SILLY": "0",
                 "ROOT_DIR": "${workspaceRoot}/../../../.."
             },
             "args": ["-log", "debug", "-c", "__agent-config_local_dev.json"],

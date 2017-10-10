@@ -194,15 +194,13 @@ func (s *Sessions) refresh(sid string) {
 }
 
 func (s *Sessions) monitorSessMap() {
-	const dbgFullTrace = false // for debugging
-
 	for {
 		select {
 		case <-s.stop:
 			s.Log.Debugln("Stop monitorSessMap")
 			return
 		case <-time.After(sessionMonitorTime * time.Second):
-			if dbgFullTrace {
+			if s.LogLevelSilly {
 				s.Log.Debugf("Sessions Map size: %d", len(s.sessMap))
 				s.Log.Debugf("Sessions Map : %v", s.sessMap)
 			}
@@ -214,7 +212,9 @@ func (s *Sessions) monitorSessMap() {
 			s.mutex.Lock()
 			for _, ss := range s.sessMap {
 				if ss.expireAt.Sub(time.Now()) < 0 {
-					//SEB DEBUG s.Log.Debugf("Delete expired session id: %s", ss.ID)
+					if s.LogLevelSilly {
+						s.Log.Debugf("Delete expired session id: %s", ss.ID)
+					}
 					delete(s.sessMap, ss.ID)
 				}
 			}

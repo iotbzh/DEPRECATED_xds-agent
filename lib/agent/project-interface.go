@@ -18,19 +18,15 @@ const (
 	StatusSyncing     = "Syncing"
 )
 
-type EventCBData map[string]interface{}
-type EventCB func(cfg *ProjectConfig, data *EventCBData)
-
 // IPROJECT Project interface
 type IPROJECT interface {
-	Add(cfg ProjectConfig) (*ProjectConfig, error) // Add a new project
-	Delete() error                                 // Delete a project
-	GetProject() *ProjectConfig                    // Get project public configuration
-	SetProject(prj ProjectConfig) *ProjectConfig   // Set project configuration
-	GetServer() *XdsServer                         // Get XdsServer that holds this project
-	GetFullPath(dir string) string                 // Get project full path
-	Sync() error                                   // Force project files synchronization
-	IsInSync() (bool, error)                       // Check if project files are in-sync
+	Add(cfg ProjectConfig) (*ProjectConfig, error)           // Add a new project
+	Delete() error                                           // Delete a project
+	GetProject() *ProjectConfig                              // Get project public configuration
+	UpdateProject(prj ProjectConfig) (*ProjectConfig, error) // Update project configuration
+	GetServer() *XdsServer                                   // Get XdsServer that holds this project
+	Sync() error                                             // Force project files synchronization
+	IsInSync() (bool, error)                                 // Check if project files are in-sync
 }
 
 // ProjectConfig is the config for one project

@@ -66,7 +66,7 @@ type cbMap struct {
 
 // NewEventListener Create a new instance of Event listener
 func (s *SyncThing) NewEventListener() *Events {
-	_, dbg := os.LookupEnv("XDS_DEBUG_STEVENTS") // set to add more debug log
+	_, dbg := os.LookupEnv("XDS_LOG_SILLY_STEVENTS") // set to add more debug log
 	return &Events{
 		MonitorTime: 100, // in Milliseconds
 		Debug:       dbg,

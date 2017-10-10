@@ -1,16 +1,12 @@
 package agent
 
-import (
-	"path/filepath"
-)
-
 // IPROJECT interface implementation for native/path mapping projects
 
 // PathMap .
 type PathMap struct {
 	*Context
 	server *XdsServer
-	folder *FolderConfig
+	folder *XdsFolderConfig
 }
 
 // NewProjectPathMap Create a new instance of PathMap
@@ -18,7 +14,7 @@ func NewProjectPathMap(ctx *Context, svr *XdsServer) *PathMap {
 	p := PathMap{
 		Context: ctx,
 		server:  svr,
-		folder:  &FolderConfig{},
+		folder:  &XdsFolderConfig{},
 	}
 	return &p
 }
@@ -49,23 +45,19 @@ func (p *PathMap) GetProject() *ProjectConfig {
 	return &prj
 }
 
-// SetProject Set project config
-func (p *PathMap) SetProject(prj ProjectConfig) *ProjectConfig {
+// UpdateProject Set project config
+func (p *PathMap) UpdateProject(prj ProjectConfig) (*ProjectConfig, error) {
 	p.folder = p.server.ProjectToFolder(prj)
-	return p.GetProject()
+	np := p.GetProject()
+	if err := p.events.Emit(EVTProjectChange, np); err != nil {
+		return np, err
+	}
+	return np, nil
 }
 
 // GetServer Get the XdsServer that holds this project
 func (p *PathMap) GetServer() *XdsServer {
 	return p.server
-}
-
-// GetFullPath returns the full path of a directory (from server POV)
-func (p *PathMap) GetFullPath(dir string) string {
-	if &dir == nil {
-		return p.folder.DataPathMap.ServerPath
-	}
-	return filepath.Join(p.folder.DataPathMap.ServerPath, dir)
 }
 
 // Sync Force project files synchronization

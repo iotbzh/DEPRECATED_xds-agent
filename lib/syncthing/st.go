@@ -119,7 +119,7 @@ func NewSyncThing(conf *xdsconfig.Config, log *logrus.Logger) *SyncThing {
 	}
 
 	// Create Events monitoring
-	// SEB TO TEST  s.Events = s.NewEventListener()
+	s.Events = s.NewEventListener()
 
 	return &s
 }
@@ -130,7 +130,7 @@ func (s *SyncThing) startProc(exeName string, args []string, env []string, eChan
 	var exePath string
 
 	// Kill existing process (useful for debug ;-) )
-	if os.Getenv("DEBUG_MODE") != "" {
+	if _, dbg := os.LookupEnv("XDS_DEBUG_MODE"); dbg {
 		fmt.Printf("\n!!! DEBUG_MODE set: KILL existing %s process(es) !!!\n", exeName)
 		exec.Command("bash", "-c", "ps -ax |grep "+exeName+" |grep "+s.BaseURL+" |cut  -d' ' -f 1|xargs -I{} kill -9 {}").Output()
 	}
@@ -227,7 +227,7 @@ func (s *SyncThing) Start() (*exec.Cmd, error) {
 		"STNOUPGRADE=1",
 	}
 
-	/* SEB STILL NEEDED, if not SUP code
+	/* FIXME - STILL NEEDED ?, if not SUP code
 
 	// XXX - temporary hack because -gui-apikey seems to correctly handle by
 	// syncthing the early first time
@@ -371,7 +371,7 @@ func (s *SyncThing) Connect() error {
 	s.Connected = true
 
 	// Start events monitoring
-	//SEB TODO err = s.Events.Start()
+	err = s.Events.Start()
 
 	return err
 }

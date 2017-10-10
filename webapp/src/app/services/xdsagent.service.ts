@@ -305,7 +305,7 @@ export class XDSAgentService {
                 id: prjID,
                 rpath: dir,
                 cmd: cmd,
-                sdkid: sdkid || "",
+                sdkID: sdkid || "",
                 args: args || [],
                 env: env || [],
             });
@@ -317,7 +317,7 @@ export class XDSAgentService {
             {
                 id: prjID,
                 rpath: dir,
-                sdkid: sdkid,
+                sdkID: sdkid,
                 args: args || [],
                 env: env || [],
             });
@@ -382,7 +382,7 @@ export class XDSAgentService {
         if (err instanceof Response) {
             const body = err.json() || 'Agent error';
             e = body.error || JSON.stringify(body);
-            if (!e || e === "") {
+            if (!e || e === "" || e === '{"isTrusted":true}') {
                 e = `${err.status} - ${err.statusText || 'Unknown error'}`;
             }
         } else if (typeof err === "object") {

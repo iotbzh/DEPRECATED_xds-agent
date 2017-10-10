@@ -148,11 +148,9 @@ func (s *WebServer) middlewareXDSDetails() gin.HandlerFunc {
 	}
 }
 
-/* SEB
 func (s *WebServer) isValidAPIKey(key string) bool {
-	return (key == s.Config.FileConf.XDSAPIKey && key != "")
+	return (s.Config.FileConf.XDSAPIKey != "" && key == s.Config.FileConf.XDSAPIKey)
 }
-*/
 
 func (s *WebServer) middlewareCSRF() gin.HandlerFunc {
 	return func(c *gin.Context) {

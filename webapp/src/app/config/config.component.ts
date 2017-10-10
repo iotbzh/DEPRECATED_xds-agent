@@ -102,7 +102,6 @@ export class ConfigComponent implements OnInit {
     xdsAgentRestartConn() {
         let url = this.xdsServerUrl;
         this.xdsAgentSvr.setServerUrl(this.curServerID, url);
-        this.configSvr.loadProjects();
     }
 
 }

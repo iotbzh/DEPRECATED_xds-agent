@@ -33,6 +33,7 @@
     "socketio",
     "ldflags",
     "SThg",
+    "stconfig",
     "Intf",
     "dismissible",
     "rpath",
@@ -40,6 +41,7 @@
     "sess",
     "IXDS",
     "golib",
+    "xdsapi",
     "xdsconfig",
     "xdsserver",
     "xdsagent",
@@ -50,6 +52,8 @@
     "sdkid",
     "Flds",
     "prjs",
-    "iosk"
+    "iosk",
+    "CIFS",
+    "IPROJECT"
   ]
 }

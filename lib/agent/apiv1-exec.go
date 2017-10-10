@@ -7,12 +7,16 @@ import (
 
 	"github.com/gin-gonic/gin"
 	common "github.com/iotbzh/xds-common/golib"
+	uuid "github.com/satori/go.uuid"
 )
 
-// Only define useful fields
+// ExecArgs Only define used fields
 type ExecArgs struct {
-	ID string `json:"id" binding:"required"`
+	ID    string `json:"id" binding:"required"`
+	CmdID string `json:"cmdID"` // command unique ID
 }
+
+var execCmdID = 1
 
 // ExecCmd executes remotely a command
 func (s *APIService) execCmd(c *gin.Context) {
@@ -24,24 +28,26 @@ func (s *APIService) execSignalCmd(c *gin.Context) {
 	s._execRequest("/signal", c)
 }
 
-func (s *APIService) _execRequest(url string, c *gin.Context) {
+func (s *APIService) _execRequest(cmd string, c *gin.Context) {
 	data, err := c.GetRawData()
 	if err != nil {
 		common.APIError(c, err.Error())
 	}
 
+	args := ExecArgs{}
+	// XXX - we cannot use c.BindJSON, so directly unmarshall it
+	// (see https://github.com/gin-gonic/gin/issues/1078)
+	if err := json.Unmarshal(data, &args); err != nil {
+		common.APIError(c, "Invalid arguments")
+		return
+	}
+
 	// First get Project ID to retrieve Server ID and send command to right server
 	id := c.Param("id")
 	if id == "" {
-		args := ExecArgs{}
-		// XXX - we cannot use c.BindJSON, so directly unmarshall it
-		// (see https://github.com/gin-gonic/gin/issues/1078)
-		if err := json.Unmarshal(data, &args); err != nil {
-			common.APIError(c, "Invalid arguments")
-			return
-		}
 		id = args.ID
 	}
+
 	prj := s.projects.Get(id)
 	if prj == nil {
 		common.APIError(c, "Unknown id")
@@ -68,21 +74,47 @@ func (s *APIService) _execRequest(url string, c *gin.Context) {
 
 	// Forward XDSServer WS events to client WS
 	// TODO removed static event name list and get it from XDSServer
-	for _, evName := range []string{
+	evtList := []string{
 		"exec:input",
 		"exec:output",
-		"exec:exit",
 		"exec:inferior-input",
 		"exec:inferior-output",
-	} {
+	}
+	so := *sock
+	fwdFuncID := []uuid.UUID{}
+	for _, evName := range evtList {
 		evN := evName
-		svr.EventOn(evN, func(evData interface{}) {
-			(*sock).Emit(evN, evData)
-		})
+		fwdFunc := func(evData interface{}) {
+			// Forward event to Client/Dashboard
+			so.Emit(evN, evData)
+		}
+		id, err := svr.EventOn(evN, fwdFunc)
+		if err != nil {
+			common.APIError(c, err.Error())
+			return
+		}
+		fwdFuncID = append(fwdFuncID, id)
+	}
+
+	// Handle Exit event separately to cleanup registered listener
+	var exitFuncID uuid.UUID
+	exitFunc := func(evData interface{}) {
+		so.Emit("exec:exit", evData)
+
+		// cleanup listener
+		for i, evName := range evtList {
+			svr.EventOff(evName, fwdFuncID[i])
+		}
+		svr.EventOff("exec:exit", exitFuncID)
+	}
+	exitFuncID, err = svr.EventOn("exec:exit", exitFunc)
+	if err != nil {
+		common.APIError(c, err.Error())
+		return
 	}
 
 	// Forward back command to right server
-	response, err := svr.HTTPPostBody(url, string(data))
+	response, err := svr.SendCommand(cmd, data)
 	if err != nil {
 		common.APIError(c, err.Error())
 		return
