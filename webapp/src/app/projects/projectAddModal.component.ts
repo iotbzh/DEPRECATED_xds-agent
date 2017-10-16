@@ -139,7 +139,7 @@ export class ProjectAddModalComponent {
 
             },
             err => {
-                this.alert.error("Configuration ERROR: " + err, 60);
+                this.alert.error(err, 60);
                 this.hide();
             });
     }

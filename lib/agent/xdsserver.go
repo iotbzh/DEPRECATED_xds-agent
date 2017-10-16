@@ -84,7 +84,9 @@ type XdsFolderConfig struct {
 
 // XdsPathMapConfig Path mapping specific data
 type XdsPathMapConfig struct {
-	ServerPath string `json:"serverPath"`
+	ServerPath   string `json:"serverPath"`
+	CheckFile    string `json:"checkFile"`
+	CheckContent string `json:"checkContent"`
 }
 
 // XdsCloudSyncConfig CloudSync (AKA Syncthing) specific data
@@ -205,13 +207,13 @@ func (xs *XdsServer) GetVersion(res interface{}) error {
 }
 
 // GetFolders Send GET request to get current folder configuration
-func (xs *XdsServer) GetFolders(prjs *[]XdsFolderConfig) error {
-	return xs._HTTPGet("/folders", prjs)
+func (xs *XdsServer) GetFolders(folders *[]XdsFolderConfig) error {
+	return xs._HTTPGet("/folders", folders)
 }
 
 // FolderAdd Send POST request to add a folder
-func (xs *XdsServer) FolderAdd(prj *XdsFolderConfig, res interface{}) error {
-	response, err := xs._HTTPPost("/folder", prj)
+func (xs *XdsServer) FolderAdd(fld *XdsFolderConfig, res interface{}) error {
+	response, err := xs._HTTPPost("/folder", fld)
 	if err != nil {
 		return err
 	}

@@ -45,10 +45,11 @@ export class AlertService {
     }
 
     public add(al: IAlert) {
+        let msg = String(al.msg).replace("\n", "<br>");
         this._alerts.push({
             show: true,
             type: al.type,
-            msg: this.sanitizer.sanitize(SecurityContext.HTML, al.msg),
+            msg: this.sanitizer.sanitize(SecurityContext.HTML, msg),
             dismissible: al.dismissible || true,
             dismissTimeout: (al.dismissTimeout * 1000) || 0,
             id: this.uid,

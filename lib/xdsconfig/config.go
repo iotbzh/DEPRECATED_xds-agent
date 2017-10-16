@@ -78,6 +78,8 @@ func Init(ctx *cli.Context, log *logrus.Logger) (*Config, error) {
 		Log: log,
 	}
 
+	c.Log.Infoln("Agent UUID:     ", uuid)
+
 	// config file settings overwrite default config
 	err = readGlobalConfig(&c, c.Options.ConfigFile)
 	if err != nil {
@@ -113,7 +115,6 @@ func Init(ctx *cli.Context, log *logrus.Logger) (*Config, error) {
 		}
 	}
 
-	c.Log.Infoln("Agent UUID:     ", uuid)
 	c.Log.Infoln("Logs file:      ", c.Options.LogFile)
 	c.Log.Infoln("Logs directory: ", c.FileConf.LogsDir)
 

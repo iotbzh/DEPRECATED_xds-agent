@@ -1,5 +1,14 @@
 package agent
 
+import (
+	"fmt"
+	"io/ioutil"
+	"os"
+	"strings"
+
+	common "github.com/iotbzh/xds-common/golib"
+)
+
 // IPROJECT interface implementation for native/path mapping projects
 
 // PathMap .
@@ -22,12 +31,55 @@ func NewProjectPathMap(ctx *Context, svr *XdsServer) *PathMap {
 // Add a new project
 func (p *PathMap) Add(cfg ProjectConfig) (*ProjectConfig, error) {
 	var err error
+	var file *os.File
+	errMsg := "ClientPath sanity check error (%d): %v"
 
-	// SEB TODO: check local/server directory access
+	// Sanity check to verify that we have RW permission and path-mapping is correct
+	dir := cfg.ClientPath
+	if !common.Exists(dir) {
+		// try to create if not existing
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			return nil, fmt.Errorf("Cannot create ClientPath directory: %s", dir)
+		}
+	}
+	if !common.Exists(dir) {
+		return nil, fmt.Errorf("ClientPath directory is not accessible: %s", dir)
+	}
+	if file, err = ioutil.TempFile(dir, ".xds_pathmap_check"); err != nil {
+		return nil, fmt.Errorf(errMsg, 1, err)
+	}
+	// Write a specific message that will be check by server during folder add
+	msg := "Pathmap checked message written by xds-agent ID: " + p.Config.AgentUID + "\n"
+	if n, err := file.WriteString(msg); n != len(msg) || err != nil {
+		return nil, fmt.Errorf(errMsg, 2, err)
+	}
+	defer func() {
+		if file != nil {
+			os.Remove(file.Name())
+			file.Close()
+		}
+	}()
 
-	err = p.server.FolderAdd(p.server.ProjectToFolder(cfg), p.folder)
+	// Convert to Xds folder
+	fld := p.server.ProjectToFolder(cfg)
+	fld.DataPathMap.CheckFile = file.Name()
+	fld.DataPathMap.CheckContent = msg
+
+	// Send request to create folder on XDS server side
+	err = p.server.FolderAdd(fld, p.folder)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Folders mapping verification failure.\n%v", err)
+	}
+
+	// 2nd part of sanity checker
+	// check specific message added by XDS Server during folder add processing
+	content, err := ioutil.ReadFile(file.Name())
+	if err != nil {
+		return nil, fmt.Errorf(errMsg, 3, err)
+	}
+	if !strings.Contains(string(content),
+		"Pathmap checked message written by xds-server ID") {
+		return nil, fmt.Errorf(errMsg, 4, "file content differ")
 	}
 
 	return p.GetProject(), nil
