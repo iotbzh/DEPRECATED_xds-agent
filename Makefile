@@ -27,9 +27,9 @@ endif
 # for backward compatibility
 DESTDIR := $(INSTALL_DIR)
 
-# Configurable variables for installation (default /usr/local/...)
+# Configurable variables for installation (default /opt/AGL/xds/agent)
 ifeq ($(origin DESTDIR), undefined)
-	DESTDIR := /usr/local/bin
+	DESTDIR := /opt/AGL/xds/agent
 endif
 
 HOST_GOOS=$(shell go env GOOS)
@@ -82,9 +82,10 @@ build: tools/syncthing/copytobin
 	@cd $(ROOT_SRCDIR); $(BUILD_ENV_FLAGS) go build $(VERBOSE_$(V)) -i -o $(LOCAL_BINDIR)/xds-agent$(EXT) -ldflags "$(GORELEASE) -X main.AppVersion=$(VERSION) -X main.AppSubVersion=$(SUB_VERSION)" -gcflags "$(GO_GCFLAGS)" .
 
 package: clean tools/syncthing vendor build
-	@mkdir -p $(PACKAGE_DIR)/xds-agent
-	@cp agent-config.json.in $(PACKAGE_DIR)/xds-agent/agent-config.json
+	@mkdir -p $(PACKAGE_DIR)/xds-agent $(PACKAGE_DIR)/scripts
 	@cp -a $(LOCAL_BINDIR)/* $(PACKAGE_DIR)/xds-agent
+	cp -r $(ROOT_SRCDIR)/conf.d $(PACKAGE_DIR)/xds-agent
+	cp -r $(ROOT_SRCDIR)/scripts $(PACKAGE_DIR)/scripts
 	cd $(PACKAGE_DIR) && zip -r $(ROOT_SRCDIR)/$(PACKAGE_ZIPFILE) ./xds-agent
 
 .PHONY: package-all
@@ -121,8 +122,10 @@ distclean: clean
 	rm -rf $(LOCAL_BINDIR) tools glide.lock vendor $(ROOT_SRCDIR)/*.zip
 
 .PHONY: install
-install: all
-	mkdir -p $(DESTDIR) && cp $(LOCAL_BINDIR)/* $(DESTDIR)
+install:
+	@test -e $(LOCAL_BINDIR)/xds-agent$(EXT) || { echo "Please execute first: make all\n"; exit 1; }
+	@test -e $(LOCAL_BINDIR)/syncthing$(EXT) -a -e $(LOCAL_BINDIR)/syncthing-inotify$(EXT) || { echo 	"Please execute first: make all\n"; exit 1; }
+	export DESTDIR=$(DESTDIR) && $(ROOT_SRCDIR)/scripts/install.sh
 
 vendor: tools/glide glide.yaml
 	$(LOCAL_TOOLSDIR)/glide install --strip-vendor

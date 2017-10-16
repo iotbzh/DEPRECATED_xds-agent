@@ -5,7 +5,6 @@ import (
 	"os"
 	"os/user"
 	"path"
-	"path/filepath"
 
 	common "github.com/iotbzh/xds-common/golib"
 )
@@ -28,8 +27,7 @@ type FileConfig struct {
 // Order to determine which config file is used:
 //  1/ from command line option: "--config myConfig.json"
 //  2/ $HOME/.xds/agent/agent-config.json file
-//  3/ <current_dir>/agent-config.json file
-//  4/ <executable dir>/agent-config.json file
+//  3/ /etc/xds-agent/config.json file
 
 func updateConfigFromFile(c *Config, confFile string) (*FileConfig, error) {
 
@@ -41,20 +39,7 @@ func updateConfigFromFile(c *Config, confFile string) (*FileConfig, error) {
 		searchIn = append(searchIn, path.Join(usr.HomeDir, ".xds", "agent", "agent-config.json"))
 	}
 
-	searchIn = append(searchIn, "/etc/xds-agent/agent-config.json")
-
-	exePath := os.Args[0]
-	ee, _ := os.Executable()
-	exeAbsPath, err := filepath.Abs(ee)
-	if err == nil {
-		exePath, err = filepath.EvalSymlinks(exeAbsPath)
-		if err == nil {
-			exePath = filepath.Dir(ee)
-		} else {
-			exePath = filepath.Dir(exeAbsPath)
-		}
-	}
-	searchIn = append(searchIn, path.Join(exePath, "agent-config.json"))
+	searchIn = append(searchIn, "/etc/xds-agent/config.json")
 
 	var cFile *string
 	for _, p := range searchIn {
