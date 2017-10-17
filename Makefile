@@ -79,13 +79,12 @@ all: tools/syncthing vendor build
 
 build: tools/syncthing/copytobin
 	@echo "### Build XDS agent (version $(VERSION), subversion $(SUB_VERSION)) - $(BUILD_MODE)";
-	@cd $(ROOT_SRCDIR); $(BUILD_ENV_FLAGS) go build $(VERBOSE_$(V)) -i -o $(LOCAL_BINDIR)/xds-agent$(EXT) -ldflags "$(GORELEASE) -X main.AppVersion=$(VERSION) -X main.AppSubVersion=$(SUB_VERSION)" -gcflags "$(GO_GCFLAGS)" .
+	@cd $(ROOT_SRCDIR); $(BUILD_ENV_FLAGS) go build $(VERBOSE_$(V)) -i -o $(LOCAL_BINDIR)/xds-agent$(EXT) -ldflags "$(GO_LDFLAGS) -X main.AppVersion=$(VERSION) -X main.AppSubVersion=$(SUB_VERSION)" -gcflags "$(GO_GCFLAGS)" .
 
 package: clean tools/syncthing vendor build
 	@mkdir -p $(PACKAGE_DIR)/xds-agent $(PACKAGE_DIR)/scripts
 	@cp -a $(LOCAL_BINDIR)/* $(PACKAGE_DIR)/xds-agent
-	cp -r $(ROOT_SRCDIR)/conf.d $(PACKAGE_DIR)/xds-agent
-	cp -r $(ROOT_SRCDIR)/scripts $(PACKAGE_DIR)/scripts
+	@cp -r $(ROOT_SRCDIR)/conf.d $(ROOT_SRCDIR)/scripts $(PACKAGE_DIR)/xds-agent
 	cd $(PACKAGE_DIR) && zip -r $(ROOT_SRCDIR)/$(PACKAGE_ZIPFILE) ./xds-agent
 
 .PHONY: package-all
@@ -127,6 +126,10 @@ install:
 	@test -e $(LOCAL_BINDIR)/syncthing$(EXT) -a -e $(LOCAL_BINDIR)/syncthing-inotify$(EXT) || { echo 	"Please execute first: make all\n"; exit 1; }
 	export DESTDIR=$(DESTDIR) && $(ROOT_SRCDIR)/scripts/install.sh
 
+.PHONY: uninstall
+uninstall:
+	export DESTDIR=$(DESTDIR) && $(ROOT_SRCDIR)/scripts/install.sh uninstall
+
 vendor: tools/glide glide.yaml
 	$(LOCAL_TOOLSDIR)/glide install --strip-vendor
 
@@ -160,6 +163,7 @@ help:
 	@echo "  build"
 	@echo "  package"
 	@echo "  install"
+	@echo "  uninstall"
 	@echo "  clean"
 	@echo "  distclean"
 	@echo ""
