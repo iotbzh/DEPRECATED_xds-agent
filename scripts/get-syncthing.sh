@@ -43,7 +43,7 @@ if [ "$?" != 0 ]; then
     exit 1
 fi
 
-gpg -q --keyserver pool.sks-keyservers.net --recv-keys 37C84554E7E0A261E4F76E1ED26E6ED000654A3E || exit 1
+${GPG} -q --keyserver pool.sks-keyservers.net --recv-keys 37C84554E7E0A261E4F76E1ED26E6ED000654A3E || exit 1
 
 tarball="syncthing-${GOOS_ST}-${GOARCH}-v${SYNCTHING_VERSION}.${TB_EXT}" \
 	&& curl -sfSL "https://github.com/syncthing/syncthing/releases/download/v${SYNCTHING_VERSION}/${tarball}" -O \

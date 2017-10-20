@@ -2,7 +2,7 @@
 Description=XDS Agent
 
 [Service]
-User=claneys
+EnvironmentFile=-/etc/default/xds-agent
 ExecStart=/opt/AGL/xds/agent/xds-agent &
 
 [Install]

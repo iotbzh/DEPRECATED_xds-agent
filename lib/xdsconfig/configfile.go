@@ -38,8 +38,7 @@ type FileConfig struct {
 // Order to determine which config file is used:
 //  1/ from command line option: "--config myConfig.json"
 //  2/ $HOME/.xds/agent/agent-config.json file
-//  3/ <current_dir>/agent-config.json file
-//  4/ <executable dir>/agent-config.json file
+//  3/ /etc/xds-agent/config.json file
 
 func readGlobalConfig(c *Config, confFile string) error {
 
@@ -52,8 +51,6 @@ func readGlobalConfig(c *Config, confFile string) error {
 	}
 
 	searchIn = append(searchIn, "/etc/xds-agent/agent-config.json")
-
-	searchIn = append(searchIn, path.Join(common.GetExePath(), "agent-config.json"))
 
 	var cFile *string
 	for _, p := range searchIn {
