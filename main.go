@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/codegangsta/cli"
+	"github.com/urfave/cli"
 	"github.com/iotbzh/xds-agent/lib/agent"
 	"github.com/iotbzh/xds-agent/lib/xdsconfig"
 )

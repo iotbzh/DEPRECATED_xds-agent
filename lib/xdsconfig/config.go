@@ -8,7 +8,7 @@ import (
 	"os"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/codegangsta/cli"
+	"github.com/urfave/cli"
 	common "github.com/iotbzh/xds-common/golib"
 	uuid "github.com/satori/go.uuid"
 )

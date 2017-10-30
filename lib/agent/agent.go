@@ -11,9 +11,9 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/codegangsta/cli"
 	"github.com/iotbzh/xds-agent/lib/syncthing"
 	"github.com/iotbzh/xds-agent/lib/xdsconfig"
+	"github.com/urfave/cli"
 )
 
 const cookieMaxAge = "3600"
