@@ -6,15 +6,10 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/iotbzh/xds-agent/lib/apiv1"
 	common "github.com/iotbzh/xds-common/golib"
 	uuid "github.com/satori/go.uuid"
 )
-
-// ExecArgs Only define used fields
-type ExecArgs struct {
-	ID    string `json:"id" binding:"required"`
-	CmdID string `json:"cmdID"` // command unique ID
-}
 
 var execCmdID = 1
 
@@ -34,7 +29,7 @@ func (s *APIService) _execRequest(cmd string, c *gin.Context) {
 		common.APIError(c, err.Error())
 	}
 
-	args := ExecArgs{}
+	args := apiv1.ExecArgs{}
 	// XXX - we cannot use c.BindJSON, so directly unmarshall it
 	// (see https://github.com/gin-gonic/gin/issues/1078)
 	if err := json.Unmarshal(data, &args); err != nil {
@@ -75,10 +70,10 @@ func (s *APIService) _execRequest(cmd string, c *gin.Context) {
 	// Forward XDSServer WS events to client WS
 	// TODO removed static event name list and get it from XDSServer
 	evtList := []string{
-		"exec:input",
-		"exec:output",
-		"exec:inferior-input",
-		"exec:inferior-output",
+		apiv1.ExecInEvent,
+		apiv1.ExecOutEvent,
+		apiv1.ExecInferiorInEvent,
+		apiv1.ExecInferiorOutEvent,
 	}
 	so := *sock
 	fwdFuncID := []uuid.UUID{}
@@ -99,15 +94,15 @@ func (s *APIService) _execRequest(cmd string, c *gin.Context) {
 	// Handle Exit event separately to cleanup registered listener
 	var exitFuncID uuid.UUID
 	exitFunc := func(evData interface{}) {
-		so.Emit("exec:exit", evData)
+		so.Emit(apiv1.ExecExitEvent, evData)
 
 		// cleanup listener
 		for i, evName := range evtList {
 			svr.EventOff(evName, fwdFuncID[i])
 		}
-		svr.EventOff("exec:exit", exitFuncID)
+		svr.EventOff(apiv1.ExecExitEvent, exitFuncID)
 	}
-	exitFuncID, err = svr.EventOn("exec:exit", exitFunc)
+	exitFuncID, err = svr.EventOn(apiv1.ExecExitEvent, exitFunc)
 	if err != nil {
 		common.APIError(c, err.Error())
 		return
@@ -127,5 +122,4 @@ func (s *APIService) _execRequest(cmd string, c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, string(body))
-
 }

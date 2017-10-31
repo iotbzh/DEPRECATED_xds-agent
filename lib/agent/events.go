@@ -3,39 +3,23 @@ package agent
 import (
 	"fmt"
 	"time"
-)
 
-// Events constants
-const (
-	// EventTypePrefix Used as event prefix
-	EventTypePrefix = "event:" // following by event type
-
-	// Supported Events type
-	EVTAll           = "all"
-	EVTServerConfig  = "server-config"        // data type ServerCfg
-	EVTProjectAdd    = "project-add"          // data type ProjectConfig
-	EVTProjectDelete = "project-delete"       // data type ProjectConfig
-	EVTProjectChange = "project-state-change" // data type ProjectConfig
+	"github.com/iotbzh/xds-agent/lib/apiv1"
 )
 
 var _EVTAllList = []string{
-	EVTServerConfig,
-	EVTProjectAdd,
-	EVTProjectDelete,
-	EVTProjectChange,
+	apiv1.EVTServerConfig,
+	apiv1.EVTProjectAdd,
+	apiv1.EVTProjectDelete,
+	apiv1.EVTProjectChange,
 }
 
-// EventMsg Message send
-type EventMsg struct {
-	Time string      `json:"time"`
-	Type string      `json:"type"`
-	Data interface{} `json:"data"`
-}
-
+// EventDef Definition on one event
 type EventDef struct {
 	sids map[string]int
 }
 
+// Events Hold registered events per context
 type Events struct {
 	*Context
 	eventsMap map[string]*EventDef
@@ -63,7 +47,7 @@ func (e *Events) GetList() []string {
 // Register Used by a client/session to register to a specific (or all) event(s)
 func (e *Events) Register(evName, sessionID string) error {
 	evs := _EVTAllList
-	if evName != EVTAll {
+	if evName != apiv1.EVTAll {
 		if _, ok := e.eventsMap[evName]; !ok {
 			return fmt.Errorf("Unsupported event type name")
 		}
@@ -78,7 +62,7 @@ func (e *Events) Register(evName, sessionID string) error {
 // UnRegister Used by a client/session to unregister event(s)
 func (e *Events) UnRegister(evName, sessionID string) error {
 	evs := _EVTAllList
-	if evName != EVTAll {
+	if evName != apiv1.EVTAll {
 		if _, ok := e.eventsMap[evName]; !ok {
 			return fmt.Errorf("Unsupported event type name")
 		}
@@ -115,13 +99,13 @@ func (e *Events) Emit(evName string, data interface{}) error {
 			}
 			continue
 		}
-		msg := EventMsg{
+		msg := apiv1.EventMsg{
 			Time: time.Now().String(),
 			Type: evName,
 			Data: data,
 		}
-		if err := (*so).Emit(EventTypePrefix+evName, msg); err != nil {
-			e.Log.Errorf("WS Emit %v error : %v", EventTypePrefix+evName, err)
+		if err := (*so).Emit(apiv1.EventTypePrefix+evName, msg); err != nil {
+			e.Log.Errorf("WS Emit %v error : %v", apiv1.EventTypePrefix+evName, err)
 			if firstErr == nil {
 				firstErr = err
 			}

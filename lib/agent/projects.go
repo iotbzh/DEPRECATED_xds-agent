@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/iotbzh/xds-agent/lib/apiv1"
 	"github.com/iotbzh/xds-agent/lib/syncthing"
 	"github.com/syncthing/syncthing/lib/sync"
 )
@@ -78,7 +79,7 @@ func (p *Projects) Get(id string) *IPROJECT {
 }
 
 // GetProjectArr returns the config of all folders as an array
-func (p *Projects) GetProjectArr() []ProjectConfig {
+func (p *Projects) GetProjectArr() []apiv1.ProjectConfig {
 	pjMutex.Lock()
 	defer pjMutex.Unlock()
 
@@ -86,8 +87,8 @@ func (p *Projects) GetProjectArr() []ProjectConfig {
 }
 
 // GetProjectArrUnsafe Same as GetProjectArr without mutex protection
-func (p *Projects) GetProjectArrUnsafe() []ProjectConfig {
-	conf := []ProjectConfig{}
+func (p *Projects) GetProjectArrUnsafe() []apiv1.ProjectConfig {
+	conf := []apiv1.ProjectConfig{}
 	for _, v := range p.projects {
 		prj := (*v).GetProject()
 		conf = append(conf, *prj)
@@ -96,14 +97,14 @@ func (p *Projects) GetProjectArrUnsafe() []ProjectConfig {
 }
 
 // Add adds a new folder
-func (p *Projects) Add(newF ProjectConfig) (*ProjectConfig, error) {
+func (p *Projects) Add(newF apiv1.ProjectConfig) (*apiv1.ProjectConfig, error) {
 	prj, err := p.createUpdate(newF, true, false)
 	if err != nil {
 		return prj, err
 	}
 
 	// Notify client with event
-	if err := p.events.Emit(EVTProjectAdd, *prj); err != nil {
+	if err := p.events.Emit(apiv1.EVTProjectAdd, *prj); err != nil {
 		p.Log.Warningf("Cannot notify project deletion: %v", err)
 	}
 
@@ -111,7 +112,7 @@ func (p *Projects) Add(newF ProjectConfig) (*ProjectConfig, error) {
 }
 
 // CreateUpdate creates or update a folder
-func (p *Projects) createUpdate(newF ProjectConfig, create bool, initial bool) (*ProjectConfig, error) {
+func (p *Projects) createUpdate(newF apiv1.ProjectConfig, create bool, initial bool) (*apiv1.ProjectConfig, error) {
 	var err error
 
 	pjMutex.Lock()
@@ -143,7 +144,7 @@ func (p *Projects) createUpdate(newF ProjectConfig, create bool, initial bool) (
 	var fld IPROJECT
 	switch newF.Type {
 	// SYNCTHING
-	case TypeCloudSync:
+	case apiv1.TypeCloudSync:
 		if p.SThg != nil {
 			fld = NewProjectST(p.Context, svr)
 		} else {
@@ -151,24 +152,24 @@ func (p *Projects) createUpdate(newF ProjectConfig, create bool, initial bool) (
 		}
 
 	// PATH MAP
-	case TypePathMap:
+	case apiv1.TypePathMap:
 		fld = NewProjectPathMap(p.Context, svr)
 	default:
 		return nil, fmt.Errorf("Unsupported folder type")
 	}
 
-	var newPrj *ProjectConfig
+	var newPrj *apiv1.ProjectConfig
 	if create {
 		// Add project on server
 		if newPrj, err = fld.Add(newF); err != nil {
-			newF.Status = StatusErrorConfig
+			newF.Status = apiv1.StatusErrorConfig
 			log.Printf("ERROR Adding project: %v\n", err)
 			return newPrj, err
 		}
 	} else {
 		// Just update project config
 		if newPrj, err = fld.UpdateProject(newF); err != nil {
-			newF.Status = StatusErrorConfig
+			newF.Status = apiv1.StatusErrorConfig
 			log.Printf("ERROR Updating project: %v\n", err)
 			return newPrj, err
 		}
@@ -194,13 +195,13 @@ func (p *Projects) createUpdate(newF ProjectConfig, create bool, initial bool) (
 }
 
 // Delete deletes a specific folder
-func (p *Projects) Delete(id string) (ProjectConfig, error) {
+func (p *Projects) Delete(id string) (apiv1.ProjectConfig, error) {
 	var err error
 
 	pjMutex.Lock()
 	defer pjMutex.Unlock()
 
-	fld := ProjectConfig{}
+	fld := apiv1.ProjectConfig{}
 	fc, exist := p.projects[id]
 	if !exist {
 		return fld, fmt.Errorf("unknown id")
@@ -215,7 +216,7 @@ func (p *Projects) Delete(id string) (ProjectConfig, error) {
 	delete(p.projects, id)
 
 	// Notify client with event
-	if err := p.events.Emit(EVTProjectDelete, *prj); err != nil {
+	if err := p.events.Emit(apiv1.EVTProjectDelete, *prj); err != nil {
 		p.Log.Warningf("Cannot notify project deletion: %v", err)
 	}
 

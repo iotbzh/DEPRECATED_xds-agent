@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/iotbzh/xds-agent/lib/apiv1"
 	common "github.com/iotbzh/xds-common/golib"
 )
 
@@ -29,7 +30,7 @@ func NewProjectPathMap(ctx *Context, svr *XdsServer) *PathMap {
 }
 
 // Add a new project
-func (p *PathMap) Add(cfg ProjectConfig) (*ProjectConfig, error) {
+func (p *PathMap) Add(cfg apiv1.ProjectConfig) (*apiv1.ProjectConfig, error) {
 	var err error
 	var file *os.File
 	errMsg := "ClientPath sanity check error (%d): %v"
@@ -91,17 +92,17 @@ func (p *PathMap) Delete() error {
 }
 
 // GetProject Get public part of project config
-func (p *PathMap) GetProject() *ProjectConfig {
+func (p *PathMap) GetProject() *apiv1.ProjectConfig {
 	prj := p.server.FolderToProject(*p.folder)
 	prj.ServerID = p.server.ID
 	return &prj
 }
 
 // UpdateProject Set project config
-func (p *PathMap) UpdateProject(prj ProjectConfig) (*ProjectConfig, error) {
+func (p *PathMap) UpdateProject(prj apiv1.ProjectConfig) (*apiv1.ProjectConfig, error) {
 	p.folder = p.server.ProjectToFolder(prj)
 	np := p.GetProject()
-	if err := p.events.Emit(EVTProjectChange, np); err != nil {
+	if err := p.events.Emit(apiv1.EVTProjectChange, np); err != nil {
 		return np, err
 	}
 	return np, nil

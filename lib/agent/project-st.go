@@ -1,6 +1,7 @@
 package agent
 
 import (
+	"github.com/iotbzh/xds-agent/lib/apiv1"
 	st "github.com/iotbzh/xds-agent/lib/syncthing"
 )
 
@@ -25,7 +26,7 @@ func NewProjectST(ctx *Context, svr *XdsServer) *STProject {
 }
 
 // Add a new project
-func (p *STProject) Add(cfg ProjectConfig) (*ProjectConfig, error) {
+func (p *STProject) Add(cfg apiv1.ProjectConfig) (*apiv1.ProjectConfig, error) {
 	var err error
 
 	// Add project/folder into XDS Server
@@ -48,7 +49,7 @@ func (p *STProject) Add(cfg ProjectConfig) (*ProjectConfig, error) {
 
 	locPrj, err := p.SThg.FolderConfigGet(id)
 	if err != nil {
-		svrPrj.Status = StatusErrorConfig
+		svrPrj.Status = apiv1.StatusErrorConfig
 		return nil, err
 	}
 	if svrPrj.ID != locPrj.ID {
@@ -70,14 +71,14 @@ func (p *STProject) Delete() error {
 }
 
 // GetProject Get public part of project config
-func (p *STProject) GetProject() *ProjectConfig {
+func (p *STProject) GetProject() *apiv1.ProjectConfig {
 	prj := p.server.FolderToProject(*p.folder)
 	prj.ServerID = p.server.ID
 	return &prj
 }
 
 // UpdateProject Update project config
-func (p *STProject) UpdateProject(prj ProjectConfig) (*ProjectConfig, error) {
+func (p *STProject) UpdateProject(prj apiv1.ProjectConfig) (*apiv1.ProjectConfig, error) {
 	// Update folder
 	p.folder = p.server.ProjectToFolder(prj)
 	svrPrj := p.GetProject()
@@ -141,7 +142,7 @@ func (p *STProject) _cbServerFolderChanged(data interface{}) {
 		p.folder.DataCloudSync.STSvrIsInSync = evt.Folder.IsInSync
 		p.folder.DataCloudSync.STSvrStatus = evt.Folder.Status
 
-		if err := p.events.Emit(EVTProjectChange, p.server.FolderToProject(*p.folder)); err != nil {
+		if err := p.events.Emit(apiv1.EVTProjectChange, p.server.FolderToProject(*p.folder)); err != nil {
 			p.Log.Warningf("Cannot notify project change: %v", err)
 		}
 	}
@@ -161,15 +162,15 @@ func (p *STProject) _cbLocalSTEvents(ev st.Event, data *st.EventsCBData) {
 		to := ev.Data["to"]
 		switch to {
 		case "scanning", "syncing":
-			sts = StatusSyncing
+			sts = apiv1.StatusSyncing
 		case "idle":
-			sts = StatusEnable
+			sts = apiv1.StatusEnable
 		}
 		inSync = (to == "idle")
 
 	case st.EventFolderPaused:
-		if sts == StatusEnable {
-			sts = StatusPause
+		if sts == apiv1.StatusEnable {
+			sts = apiv1.StatusPause
 		}
 		inSync = false
 	}
@@ -179,7 +180,7 @@ func (p *STProject) _cbLocalSTEvents(ev st.Event, data *st.EventsCBData) {
 		p.folder.DataCloudSync.STLocIsInSync = inSync
 		p.folder.DataCloudSync.STLocStatus = sts
 
-		if err := p.events.Emit(EVTProjectChange, p.server.FolderToProject(*p.folder)); err != nil {
+		if err := p.events.Emit(apiv1.EVTProjectChange, p.server.FolderToProject(*p.folder)); err != nil {
 			p.Log.Warningf("Cannot notify project change: %v", err)
 		}
 	}

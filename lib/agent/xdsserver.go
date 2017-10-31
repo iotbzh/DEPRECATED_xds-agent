@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/iotbzh/xds-agent/lib/apiv1"
 	"github.com/iotbzh/xds-agent/lib/xdsconfig"
 	common "github.com/iotbzh/xds-common/golib"
 	uuid "github.com/satori/go.uuid"
@@ -366,7 +367,7 @@ func (xs *XdsServer) EventOff(evName string, id uuid.UUID) error {
 }
 
 // ProjectToFolder Convert Project structure to Folder structure
-func (xs *XdsServer) ProjectToFolder(pPrj ProjectConfig) *XdsFolderConfig {
+func (xs *XdsServer) ProjectToFolder(pPrj apiv1.ProjectConfig) *XdsFolderConfig {
 	stID := ""
 	if pPrj.Type == XdsTypeCloudSync {
 		stID, _ = xs.SThg.IDGet()
@@ -395,7 +396,7 @@ func (xs *XdsServer) ProjectToFolder(pPrj ProjectConfig) *XdsFolderConfig {
 }
 
 // FolderToProject Convert Folder structure to Project structure
-func (xs *XdsServer) FolderToProject(fPrj XdsFolderConfig) ProjectConfig {
+func (xs *XdsServer) FolderToProject(fPrj XdsFolderConfig) apiv1.ProjectConfig {
 	inSync := fPrj.IsInSync
 	sts := fPrj.Status
 
@@ -404,27 +405,27 @@ func (xs *XdsServer) FolderToProject(fPrj XdsFolderConfig) ProjectConfig {
 
 		sts = fPrj.DataCloudSync.STSvrStatus
 		switch fPrj.DataCloudSync.STLocStatus {
-		case StatusErrorConfig, StatusDisable, StatusPause:
+		case apiv1.StatusErrorConfig, apiv1.StatusDisable, apiv1.StatusPause:
 			sts = fPrj.DataCloudSync.STLocStatus
 			break
-		case StatusSyncing:
-			if sts != StatusErrorConfig && sts != StatusDisable && sts != StatusPause {
-				sts = StatusSyncing
+		case apiv1.StatusSyncing:
+			if sts != apiv1.StatusErrorConfig && sts != apiv1.StatusDisable && sts != apiv1.StatusPause {
+				sts = apiv1.StatusSyncing
 			}
 			break
-		case StatusEnable:
+		case apiv1.StatusEnable:
 			// keep STSvrStatus
 			break
 		}
 	}
 
-	pPrj := ProjectConfig{
+	pPrj := apiv1.ProjectConfig{
 		ID:         fPrj.ID,
 		ServerID:   xs.ID,
 		Label:      fPrj.Label,
 		ClientPath: fPrj.ClientPath,
 		ServerPath: fPrj.DataPathMap.ServerPath,
-		Type:       ProjectType(fPrj.Type),
+		Type:       apiv1.ProjectType(fPrj.Type),
 		Status:     sts,
 		IsInSync:   inSync,
 		DefaultSdk: fPrj.DefaultSdk,
@@ -591,7 +592,7 @@ func (xs *XdsServer) _SocketConnect() error {
 // Send event to notify changes
 func (xs *XdsServer) _NotifyState() {
 
-	evSts := ServerCfg{
+	evSts := apiv1.ServerCfg{
 		ID:         xs.ID,
 		URL:        xs.BaseURL,
 		APIURL:     xs.APIURL,
@@ -599,7 +600,7 @@ func (xs *XdsServer) _NotifyState() {
 		ConnRetry:  xs.ConnRetry,
 		Connected:  xs.Connected,
 	}
-	if err := xs.events.Emit(EVTServerConfig, evSts); err != nil {
+	if err := xs.events.Emit(apiv1.EVTServerConfig, evSts); err != nil {
 		xs.Log.Warningf("Cannot notify XdsServer state change: %v", err)
 	}
 }

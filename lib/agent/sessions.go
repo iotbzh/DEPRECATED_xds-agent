@@ -154,7 +154,7 @@ func (s *Sessions) UpdateIOSocket(sid string, so *socketio.Socket) error {
 	return nil
 }
 
-// nesSession Allocate a new client session
+// newSession Allocate a new client session
 func (s *Sessions) newSession(prefix string) *ClientSession {
 	uuid := prefix + uuid.NewV4().String()
 	id := base64.URLEncoding.EncodeToString([]byte(uuid))

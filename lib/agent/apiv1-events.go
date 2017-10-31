@@ -4,20 +4,9 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/iotbzh/xds-agent/lib/apiv1"
 	common "github.com/iotbzh/xds-common/golib"
 )
-
-// EventRegisterArgs is the parameters (json format) of /events/register command
-type EventRegisterArgs struct {
-	Name      string `json:"name"`
-	ProjectID string `json:"filterProjectID"`
-}
-
-// EventUnRegisterArgs is the parameters (json format) of /events/unregister command
-type EventUnRegisterArgs struct {
-	Name string `json:"name"`
-	ID   int    `json:"id"`
-}
 
 // eventsList Registering for events that will be send over a WS
 func (s *APIService) eventsList(c *gin.Context) {
@@ -26,7 +15,7 @@ func (s *APIService) eventsList(c *gin.Context) {
 
 // eventsRegister Registering for events that will be send over a WS
 func (s *APIService) eventsRegister(c *gin.Context) {
-	var args EventRegisterArgs
+	var args apiv1.EventRegisterArgs
 
 	if c.BindJSON(&args) != nil || args.Name == "" {
 		common.APIError(c, "Invalid arguments")
@@ -50,7 +39,7 @@ func (s *APIService) eventsRegister(c *gin.Context) {
 
 // eventsRegister Registering for events that will be send over a WS
 func (s *APIService) eventsUnRegister(c *gin.Context) {
-	var args EventUnRegisterArgs
+	var args apiv1.EventUnRegisterArgs
 
 	if c.BindJSON(&args) != nil || args.Name == "" {
 		common.APIError(c, "Invalid arguments")

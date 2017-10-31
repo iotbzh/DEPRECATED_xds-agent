@@ -227,11 +227,11 @@ func (s *WebServer) socketHandler(c *gin.Context) {
 	}
 
 	s.sIOServer.On("connection", func(so socketio.Socket) {
-		s.Log.Debugf("WS Connected (SID=%v)", so.Id())
+		s.Log.Debugf("WS Connected (WSID=%s, SID=%s)", so.Id(), sess.ID)
 		s.sessions.UpdateIOSocket(sess.ID, &so)
 
 		so.On("disconnection", func() {
-			s.Log.Debugf("WS disconnected (SID=%v)", so.Id())
+			s.Log.Debugf("WS disconnected (WSID=%s, SID=%s)", so.Id(), sess.ID)
 			s.sessions.UpdateIOSocket(sess.ID, nil)
 		})
 	})

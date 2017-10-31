@@ -95,8 +95,9 @@ func (s *APIService) AddXdsServer(cfg xdsconfig.XDSServerConf) (*XdsServer, erro
 		// Passthrough routes (handle by XDS Server)
 		grp := s.apiRouter.Group(svr.PartialURL)
 		svr.SetAPIRouterGroup(grp)
-		svr.PassthroughGet("/sdks")
-		svr.PassthroughGet("/sdk/:id")
+
+		// Declare passthrough routes
+		s.sdksPassthroughInit(svr)
 	}
 
 	// Established connection

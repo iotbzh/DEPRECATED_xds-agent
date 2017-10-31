@@ -54,6 +54,7 @@
     "prjs",
     "iosk",
     "CIFS",
-    "IPROJECT"
+    "IPROJECT",
+    "unregister"
   ]
 }
