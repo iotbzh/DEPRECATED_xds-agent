@@ -12,6 +12,9 @@ SUB_VERSION := $(subst $(VERSION)-,,$(GIT_DESC))
 ifeq ($(VERSION), )
 	VERSION := unknown-dev
 endif
+ifeq ($(SUB_VERSION), )
+	SUB_VERSION := $(shell date +'%Y-%m-%d_%H%M%S')
+endif
 
 # Configurable variables for installation (default /opt/AGL/...)
 ifeq ($(origin DESTDIR), undefined)
