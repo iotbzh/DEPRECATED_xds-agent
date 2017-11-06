@@ -33,10 +33,10 @@ func NewAPIV1(ctx *Context) *APIService {
 	s.apiRouter.GET("/browse", s.browseFS)
 
 	s.apiRouter.GET("/projects", s.getProjects)
-	s.apiRouter.GET("/project/:id", s.getProject)
-	s.apiRouter.POST("/project", s.addProject)
-	s.apiRouter.POST("/project/sync/:id", s.syncProject)
-	s.apiRouter.DELETE("/project/:id", s.delProject)
+	s.apiRouter.GET("/projects/:id", s.getProject)
+	s.apiRouter.POST("/projects", s.addProject)
+	s.apiRouter.POST("/projects/sync/:id", s.syncProject)
+	s.apiRouter.DELETE("/projects/:id", s.delProject)
 
 	s.apiRouter.POST("/exec", s.execCmd)
 	s.apiRouter.POST("/exec/:id", s.execCmd)
