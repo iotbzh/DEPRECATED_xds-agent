@@ -3,6 +3,7 @@ package agent
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/iotbzh/xds-agent/lib/apiv1"
@@ -64,6 +65,27 @@ func (p *Projects) Init(server *XdsServer) error {
 		return fmt.Errorf(errMsg)
 	}
 	return nil
+}
+
+// ResolveID Complete a Project ID (helper for user that can use partial ID value)
+func (p *Projects) ResolveID(id string) (string, error) {
+	if id == "" {
+		return "", nil
+	}
+
+	match := []string{}
+	for iid := range p.projects {
+		if strings.HasPrefix(iid, id) {
+			match = append(match, iid)
+		}
+	}
+
+	if len(match) == 1 {
+		return match[0], nil
+	} else if len(match) == 0 {
+		return id, fmt.Errorf("Unknown id")
+	}
+	return id, fmt.Errorf("Multiple IDs found with provided prefix: " + id)
 }
 
 // Get returns the folder config or nil if not existing
@@ -204,7 +226,7 @@ func (p *Projects) Delete(id string) (apiv1.ProjectConfig, error) {
 	fld := apiv1.ProjectConfig{}
 	fc, exist := p.projects[id]
 	if !exist {
-		return fld, fmt.Errorf("unknown id")
+		return fld, fmt.Errorf("Unknown id")
 	}
 
 	prj := (*fc).GetProject()

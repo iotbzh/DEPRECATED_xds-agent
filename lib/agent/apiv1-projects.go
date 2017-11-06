@@ -15,7 +15,12 @@ func (s *APIService) getProjects(c *gin.Context) {
 
 // getProject returns a specific project configuration
 func (s *APIService) getProject(c *gin.Context) {
-	prj := s.projects.Get(c.Param("id"))
+	id, err := s.projects.ResolveID(c.Param("id"))
+	if err != nil {
+		common.APIError(c, err.Error())
+		return
+	}
+	prj := s.projects.Get(id)
 	if prj == nil {
 		common.APIError(c, "Invalid id")
 		return
@@ -45,22 +50,30 @@ func (s *APIService) addProject(c *gin.Context) {
 
 // syncProject force synchronization of project files
 func (s *APIService) syncProject(c *gin.Context) {
-	id := c.Param("id")
-
-	s.Log.Debugln("Sync project id: ", id)
-
-	err := s.projects.ForceSync(id)
+	id, err := s.projects.ResolveID(c.Param("id"))
 	if err != nil {
 		common.APIError(c, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, "")
+	s.Log.Debugln("Sync project id: ", id)
+
+	err = s.projects.ForceSync(id)
+	if err != nil {
+		common.APIError(c, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, nil)
 }
 
 // delProject deletes project from server config
 func (s *APIService) delProject(c *gin.Context) {
-	id := c.Param("id")
+	id, err := s.projects.ResolveID(c.Param("id"))
+	if err != nil {
+		common.APIError(c, err.Error())
+		return
+	}
 
 	s.Log.Debugln("Delete project id ", id)
 
