@@ -251,7 +251,13 @@ func (xs *XdsServer) PassthroughGet(url string) {
 
 	xs.apiRouter.GET(url, func(c *gin.Context) {
 		var data interface{}
-		if err := xs._HTTPGet(url, &data); err != nil {
+		// Take care of param (eg. id in /projects/:id)
+		nURL := url
+		if strings.Contains(url, ":") {
+			nURL = strings.TrimPrefix(c.Request.URL.Path, xs.APIURL)
+		}
+		// Send Get request
+		if err := xs._HTTPGet(nURL, &data); err != nil {
 			if strings.Contains(err.Error(), "connection refused") {
 				xs.Connected = false
 				xs._NotifyState()
@@ -279,7 +285,13 @@ func (xs *XdsServer) PassthroughPost(url string) {
 			return
 		}
 
-		response, err := xs._HTTPPost(url, bodyReq[:n])
+		// Take care of param (eg. id in /projects/:id)
+		nURL := url
+		if strings.Contains(url, ":") {
+			nURL = strings.TrimPrefix(c.Request.URL.Path, xs.APIURL)
+		}
+		// Send Post request
+		response, err := xs._HTTPPost(nURL, bodyReq[:n])
 		if err != nil {
 			common.APIError(c, err.Error())
 			return
