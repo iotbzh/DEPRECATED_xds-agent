@@ -214,7 +214,7 @@ func (xs *XdsServer) GetFolders(folders *[]XdsFolderConfig) error {
 
 // FolderAdd Send POST request to add a folder
 func (xs *XdsServer) FolderAdd(fld *XdsFolderConfig, res interface{}) error {
-	response, err := xs._HTTPPost("/folder", fld)
+	response, err := xs._HTTPPost("/folders", fld)
 	if err != nil {
 		return err
 	}
@@ -229,12 +229,12 @@ func (xs *XdsServer) FolderAdd(fld *XdsFolderConfig, res interface{}) error {
 
 // FolderDelete Send DELETE request to delete a folder
 func (xs *XdsServer) FolderDelete(id string) error {
-	return xs.client.HTTPDelete("/folder/" + id)
+	return xs.client.HTTPDelete("/folders/" + id)
 }
 
 // FolderSync Send POST request to force synchronization of a folder
 func (xs *XdsServer) FolderSync(id string) error {
-	return xs.client.HTTPPost("/folder/sync/"+id, "")
+	return xs.client.HTTPPost("/folders/sync/"+id, "")
 }
 
 // SetAPIRouterGroup .

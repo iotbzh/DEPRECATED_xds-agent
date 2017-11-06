@@ -285,15 +285,15 @@ export class XDSAgentService {
     }
 
     addProject(cfg: IXDSProjectConfig): Observable<IXDSProjectConfig> {
-        return this._post('/project', cfg);
+        return this._post('/projects', cfg);
     }
 
     deleteProject(id: string): Observable<IXDSProjectConfig> {
-        return this._delete('/project/' + id);
+        return this._delete('/projects/' + id);
     }
 
     syncProject(id: string): Observable<string> {
-        return this._post('/project/sync/' + id, {});
+        return this._post('/projects/sync/' + id, {});
     }
 
     /***
