@@ -330,7 +330,7 @@ export class XDSAgentService {
 
     private _RegisterEvents() {
         // Register to all existing events
-        this._post('/events/register', { "name": "all" })
+        this._post('/events/register', { "name": "event:all" })
             .subscribe(
             res => { },
             error => {

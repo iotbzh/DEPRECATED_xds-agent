@@ -233,8 +233,8 @@ func (s *WebServer) socketHandler(c *gin.Context) {
 
 		so.On("disconnection", func() {
 			s.Log.Debugf("WS disconnected (WSID=%s, SID=%s)", so.Id(), sess.ID)
-			s.sessions.UpdateIOSocket(sess.ID, nil)
 			s.events.UnRegister(apiv1.EVTAll, sess.ID)
+			s.sessions.UpdateIOSocket(sess.ID, nil)
 		})
 	})
 
