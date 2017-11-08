@@ -104,8 +104,9 @@ func (e *Events) Emit(evName string, data interface{}) error {
 			Type: evName,
 			Data: data,
 		}
-		if err := (*so).Emit(apiv1.EventTypePrefix+evName, msg); err != nil {
-			e.Log.Errorf("WS Emit %v error : %v", apiv1.EventTypePrefix+evName, err)
+		e.Log.Debugf("Emit Event %s: %v", evName, sid)
+		if err := (*so).Emit(evName, msg); err != nil {
+			e.Log.Errorf("WS Emit %v error : %v", evName, err)
 			if firstErr == nil {
 				firstErr = err
 			}

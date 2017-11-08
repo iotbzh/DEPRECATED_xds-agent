@@ -85,7 +85,7 @@ func (p *STProject) UpdateProject(prj apiv1.ProjectConfig) (*apiv1.ProjectConfig
 
 	// Register events to update folder status
 	// Register to XDS Server events
-	p.server.EventOn("event:FolderStateChanged", p._cbServerFolderChanged)
+	p.server.EventOn("event:FolderStateChanged", "", p._cbServerFolderChanged)
 	if err := p.server.EventRegister("FolderStateChanged", svrPrj.ID); err != nil {
 		p.Log.Warningf("XDS Server EventRegister failed: %v", err)
 		return svrPrj, err
@@ -128,12 +128,12 @@ func (p *STProject) IsInSync() (bool, error) {
 
 // callback use to update (XDS Server) folder IsInSync status
 
-func (p *STProject) _cbServerFolderChanged(data interface{}) {
+func (p *STProject) _cbServerFolderChanged(pData interface{}, data interface{}) error {
 	evt := data.(XdsEventFolderChange)
 
 	// Only process event that concerns this project/folder ID
 	if p.folder.ID != evt.Folder.ID {
-		return
+		return nil
 	}
 
 	if evt.Folder.IsInSync != p.folder.DataCloudSync.STSvrIsInSync ||
@@ -146,6 +146,7 @@ func (p *STProject) _cbServerFolderChanged(data interface{}) {
 			p.Log.Warningf("Cannot notify project change: %v", err)
 		}
 	}
+	return nil
 }
 
 // callback use to update IsInSync status

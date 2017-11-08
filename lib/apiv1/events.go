@@ -18,11 +18,11 @@ const (
 	EventTypePrefix = "event:" // following by event type
 
 	// Supported Events type
-	EVTAll           = "all"
-	EVTServerConfig  = "server-config"        // data type apiv1.ServerCfg
-	EVTProjectAdd    = "project-add"          // data type apiv1.ProjectConfig
-	EVTProjectDelete = "project-delete"       // data type apiv1.ProjectConfig
-	EVTProjectChange = "project-state-change" // data type apiv1.ProjectConfig
+	EVTAll           = EventTypePrefix + "all"
+	EVTServerConfig  = EventTypePrefix + "server-config"        // data type apiv1.ServerCfg
+	EVTProjectAdd    = EventTypePrefix + "project-add"          // data type apiv1.ProjectConfig
+	EVTProjectDelete = EventTypePrefix + "project-delete"       // data type apiv1.ProjectConfig
+	EVTProjectChange = EventTypePrefix + "project-state-change" // data type apiv1.ProjectConfig
 )
 
 // EventMsg Message send

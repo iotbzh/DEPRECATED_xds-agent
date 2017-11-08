@@ -12,6 +12,7 @@ import (
 )
 
 var execCmdID = 1
+var fwdFuncID []uuid.UUID
 
 // ExecCmd executes remotely a command
 func (s *APIService) execCmd(c *gin.Context) {
@@ -38,11 +39,15 @@ func (s *APIService) _execRequest(cmd string, c *gin.Context) {
 	}
 
 	// First get Project ID to retrieve Server ID and send command to right server
-	id := c.Param("id")
-	if id == "" {
-		id = args.ID
+	iid := c.Param("id")
+	if iid == "" {
+		iid = args.ID
 	}
-
+	id, err := s.projects.ResolveID(iid)
+	if err != nil {
+		common.APIError(c, err.Error())
+		return
+	}
 	prj := s.projects.Get(id)
 	if prj == nil {
 		common.APIError(c, "Unknown id")
@@ -75,15 +80,23 @@ func (s *APIService) _execRequest(cmd string, c *gin.Context) {
 		apiv1.ExecInferiorInEvent,
 		apiv1.ExecInferiorOutEvent,
 	}
-	so := *sock
-	fwdFuncID := []uuid.UUID{}
+
 	for _, evName := range evtList {
 		evN := evName
-		fwdFunc := func(evData interface{}) {
+		fwdFunc := func(pData interface{}, evData interface{}) error {
+			sid := pData.(string)
+			// IO socket can be nil when disconnected
+			so := s.sessions.IOSocketGet(sid)
+			if so == nil {
+				s.Log.Infof("%s not emitted: WS closed (sid:%s)", evN, sid)
+				return nil
+			}
+
 			// Forward event to Client/Dashboard
-			so.Emit(evN, evData)
+			(*so).Emit(evN, evData)
+			return nil
 		}
-		id, err := svr.EventOn(evN, fwdFunc)
+		id, err := svr.EventOn(evN, sess.ID, fwdFunc)
 		if err != nil {
 			common.APIError(c, err.Error())
 			return
@@ -93,16 +106,28 @@ func (s *APIService) _execRequest(cmd string, c *gin.Context) {
 
 	// Handle Exit event separately to cleanup registered listener
 	var exitFuncID uuid.UUID
-	exitFunc := func(evData interface{}) {
-		so.Emit(apiv1.ExecExitEvent, evData)
+	exitFunc := func(pData interface{}, evData interface{}) error {
+		evN := apiv1.ExecExitEvent
+		sid := pData.(string)
+
+		// IO socket can be nil when disconnected
+		so := s.sessions.IOSocketGet(sid)
+		if so == nil {
+			s.Log.Infof("%s not emitted: WS closed (sid:%s)", evN, sid)
+			return nil
+		}
+
+		(*so).Emit(evN, evData)
 
 		// cleanup listener
 		for i, evName := range evtList {
 			svr.EventOff(evName, fwdFuncID[i])
 		}
-		svr.EventOff(apiv1.ExecExitEvent, exitFuncID)
+		svr.EventOff(evN, exitFuncID)
+
+		return nil
 	}
-	exitFuncID, err = svr.EventOn(apiv1.ExecExitEvent, exitFunc)
+	exitFuncID, err = svr.EventOn(apiv1.ExecExitEvent, sess.ID, exitFunc)
 	if err != nil {
 		common.APIError(c, err.Error())
 		return

@@ -112,11 +112,15 @@ type XdsEventFolderChange struct {
 	Folder XdsFolderConfig `json:"folder"`
 }
 
+// Event emitter callback
+type EventCB func(privData interface{}, evtData interface{}) error
+
 // caller Used to chain event listeners
 type caller struct {
-	id        uuid.UUID
-	EventName string
-	Func      func(interface{})
+	id          uuid.UUID
+	EventName   string
+	Func        EventCB
+	PrivateData interface{}
 }
 
 const _IDTempoPrefix = "tempo-"
@@ -316,7 +320,7 @@ func (xs *XdsServer) EventRegister(evName string, id string) error {
 }
 
 // EventOn Register a callback on events reception
-func (xs *XdsServer) EventOn(evName string, f func(interface{})) (uuid.UUID, error) {
+func (xs *XdsServer) EventOn(evName string, privData interface{}, f EventCB) (uuid.UUID, error) {
 	if xs.ioSock == nil {
 		return uuid.Nil, fmt.Errorf("Io.Socket not initialized")
 	}
@@ -333,14 +337,25 @@ func (xs *XdsServer) EventOn(evName string, f func(interface{})) (uuid.UUID, err
 		if evName == "event:FolderStateChanged" {
 			err = xs.ioSock.On(evn, func(data XdsEventFolderChange) error {
 				xs.sockEventsLock.Lock()
-				defer xs.sockEventsLock.Unlock()
-				for _, c := range xs.sockEvents[evn] {
-					c.Func(data)
+				sEvts := make([]*caller, len(xs.sockEvents[evn]))
+				copy(sEvts, xs.sockEvents[evn])
+				xs.sockEventsLock.Unlock()
+				for _, c := range sEvts {
+					c.Func(c.PrivateData, data)
 				}
 				return nil
 			})
 		} else {
-			err = xs.ioSock.On(evn, f)
+			err = xs.ioSock.On(evn, func(data interface{}) error {
+				xs.sockEventsLock.Lock()
+				sEvts := make([]*caller, len(xs.sockEvents[evn]))
+				copy(sEvts, xs.sockEvents[evn])
+				xs.sockEventsLock.Unlock()
+				for _, c := range sEvts {
+					c.Func(c.PrivateData, data)
+				}
+				return nil
+			})
 		}
 		if err != nil {
 			return uuid.Nil, err
@@ -348,9 +363,10 @@ func (xs *XdsServer) EventOn(evName string, f func(interface{})) (uuid.UUID, err
 	}
 
 	c := &caller{
-		id:        uuid.NewV1(),
-		EventName: evName,
-		Func:      f,
+		id:          uuid.NewV1(),
+		EventName:   evName,
+		Func:        f,
+		PrivateData: privData,
 	}
 
 	xs.sockEvents[evName] = append(xs.sockEvents[evName], c)
