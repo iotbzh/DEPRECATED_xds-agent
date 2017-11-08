@@ -7,13 +7,6 @@ import (
 	"github.com/iotbzh/xds-agent/lib/apiv1"
 )
 
-var _EVTAllList = []string{
-	apiv1.EVTServerConfig,
-	apiv1.EVTProjectAdd,
-	apiv1.EVTProjectDelete,
-	apiv1.EVTProjectChange,
-}
-
 // EventDef Definition on one event
 type EventDef struct {
 	sids map[string]int
@@ -28,7 +21,7 @@ type Events struct {
 // NewEvents creates an instance of Events
 func NewEvents(ctx *Context) *Events {
 	evMap := make(map[string]*EventDef)
-	for _, ev := range _EVTAllList {
+	for _, ev := range apiv1.EVTAllList {
 		evMap[ev] = &EventDef{
 			sids: make(map[string]int),
 		}
@@ -41,12 +34,12 @@ func NewEvents(ctx *Context) *Events {
 
 // GetList returns the list of all supported events
 func (e *Events) GetList() []string {
-	return _EVTAllList
+	return apiv1.EVTAllList
 }
 
 // Register Used by a client/session to register to a specific (or all) event(s)
 func (e *Events) Register(evName, sessionID string) error {
-	evs := _EVTAllList
+	evs := apiv1.EVTAllList
 	if evName != apiv1.EVTAll {
 		if _, ok := e.eventsMap[evName]; !ok {
 			return fmt.Errorf("Unsupported event type name")
@@ -61,7 +54,7 @@ func (e *Events) Register(evName, sessionID string) error {
 
 // UnRegister Used by a client/session to unregister event(s)
 func (e *Events) UnRegister(evName, sessionID string) error {
-	evs := _EVTAllList
+	evs := apiv1.EVTAllList
 	if evName != apiv1.EVTAll {
 		if _, ok := e.eventsMap[evName]; !ok {
 			return fmt.Errorf("Unsupported event type name")
@@ -95,7 +88,7 @@ func (e *Events) Emit(evName string, data interface{}) error {
 		so := e.webServer.sessions.IOSocketGet(sid)
 		if so == nil {
 			if firstErr == nil {
-				firstErr = fmt.Errorf("IOSocketGet return nil")
+				firstErr = fmt.Errorf("IOSocketGet return nil (SID=%v)", sid)
 			}
 			continue
 		}

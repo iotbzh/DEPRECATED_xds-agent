@@ -25,6 +25,14 @@ const (
 	EVTProjectChange = EventTypePrefix + "project-state-change" // data type apiv1.ProjectConfig
 )
 
+// EVTAllList List of all supported events
+var EVTAllList = []string{
+	EVTServerConfig,
+	EVTProjectAdd,
+	EVTProjectDelete,
+	EVTProjectChange,
+}
+
 // EventMsg Message send
 type EventMsg struct {
 	Time string      `json:"time"`

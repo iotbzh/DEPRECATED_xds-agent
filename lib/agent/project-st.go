@@ -143,7 +143,7 @@ func (p *STProject) _cbServerFolderChanged(pData interface{}, data interface{}) 
 		p.folder.DataCloudSync.STSvrStatus = evt.Folder.Status
 
 		if err := p.events.Emit(apiv1.EVTProjectChange, p.server.FolderToProject(*p.folder)); err != nil {
-			p.Log.Warningf("Cannot notify project change: %v", err)
+			p.Log.Warningf("Cannot notify project change (from server): %v", err)
 		}
 	}
 	return nil
@@ -182,7 +182,7 @@ func (p *STProject) _cbLocalSTEvents(ev st.Event, data *st.EventsCBData) {
 		p.folder.DataCloudSync.STLocStatus = sts
 
 		if err := p.events.Emit(apiv1.EVTProjectChange, p.server.FolderToProject(*p.folder)); err != nil {
-			p.Log.Warningf("Cannot notify project change: %v", err)
+			p.Log.Warningf("Cannot notify project change (local): %v", err)
 		}
 	}
 }
