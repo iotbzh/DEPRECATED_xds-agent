@@ -4,7 +4,7 @@ import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
 
 
-export type AlertType = "danger" | "warning" | "info" | "success";
+export type AlertType = 'danger' | 'warning' | 'info' | 'success';
 
 export interface IAlert {
     type: AlertType;
@@ -22,7 +22,7 @@ export class AlertService {
     private _alerts: IAlert[];
     private alertsSubject = <Subject<IAlert[]>>new Subject();
     private uid = 0;
-    private defaultDissmissTmo = 5; // in seconds
+    private defaultDismissTmo = 5; // in seconds
 
     constructor(private sanitizer: DomSanitizer) {
         this.alerts = this.alertsSubject.asObservable();
@@ -32,20 +32,20 @@ export class AlertService {
 
     public error(msg: string, dismissTime?: number) {
         this.add({
-            type: "danger", msg: msg, dismissible: true, dismissTimeout: dismissTime
+            type: 'danger', msg: msg, dismissible: true, dismissTimeout: dismissTime
         });
     }
 
     public warning(msg: string, dismissible?: boolean) {
-        this.add({ type: "warning", msg: msg, dismissible: true, dismissTimeout: (dismissible ? this.defaultDissmissTmo : 0) });
+        this.add({ type: 'warning', msg: msg, dismissible: true, dismissTimeout: (dismissible ? this.defaultDismissTmo : 0) });
     }
 
     public info(msg: string) {
-        this.add({ type: "info", msg: msg, dismissible: true, dismissTimeout: this.defaultDissmissTmo });
+        this.add({ type: 'info', msg: msg, dismissible: true, dismissTimeout: this.defaultDismissTmo });
     }
 
     public add(al: IAlert) {
-        let msg = String(al.msg).replace("\n", "<br>");
+        const msg = String(al.msg).replace('\n', '<br>');
         this._alerts.push({
             show: true,
             type: al.type,
@@ -59,7 +59,7 @@ export class AlertService {
     }
 
     public del(al: IAlert) {
-        let idx = this._alerts.findIndex((a) => a.id === al.id);
+        const idx = this._alerts.findIndex((a) => a.id === al.id);
         if (idx > -1) {
             this._alerts.splice(idx, 1);
         }

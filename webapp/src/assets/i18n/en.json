@@ -1,0 +1,33 @@
+{
+    "LOGIN": {
+        "EMAIL": "Email",
+        "PASSWORD": "Password",
+        "SUBMIT_LOGIN": "Login"
+    },
+    "HOME": {
+        "TITLE": "Welcome"
+    },
+    "MENUBAR": {
+        "HOME": "Home",
+        "BUILD": "Build"
+    },
+    "SETTINGS": {
+        "HOME": {
+            "TITLE": "Settings"
+        }
+    },
+    "EVENT_EMMITER": {
+        "SEL_LANG": "Select Language"
+    },
+    "POPUP": {
+        "CONFIRM": "Confirm switching user",
+        "CANCEL": "Cancel",
+        "TIME-LEFT": "Time left",
+        "SECONDS": "seconds"
+    },
+    "TOOLTIP": {
+        "PROJECTS": {
+            "NEW": "new project successfully created"
+        }
+    }
+}

@@ -2,7 +2,7 @@ import { Injectable, SecurityContext } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 
-import { XDSAgentService } from "../services/xdsagent.service";
+import { XDSAgentService } from '../services/xdsagent.service';
 
 export interface ISdk {
     id: string;
@@ -29,7 +29,7 @@ export class SdkService {
                 return;
             }
             // FIXME support multiple server
-            //cfg.servers.forEach(svr => {
+            // cfg.servers.forEach(svr => {
             this.xdsSvr.getSdks(cfg.servers[0].id).subscribe((s) => {
                 this._sdksList = s;
                 this.sdksSubject.next(s);
@@ -49,6 +49,6 @@ export class SdkService {
         if (this.current && this.current.id) {
             return this.current.id;
         }
-        return "";
+        return '';
     }
 }

@@ -1,8 +1,8 @@
 import { Component, Input } from '@angular/core';
-import { ISdk } from "../services/sdk.service";
+import { ISdk } from '../services/sdk.service';
 
 @Component({
-    selector: 'sdk-card',
+    selector: 'xds-sdk-card',
     template: `
         <div class="row">
             <div class="col-xs-12">
@@ -38,7 +38,7 @@ import { ISdk } from "../services/sdk.service";
             </tbody>
         </table >
     `,
-    styleUrls: ['./app/config/config.component.css']
+    styleUrls: ['../config/config.component.css']
 })
 
 export class SdkCardComponent {

@@ -22,7 +22,7 @@
                             <td style="white-space: nowrap">
                                 <div class="btn-group">
                                     <button class="btn btn-link" (click)="xdsAgentRestartConn()"><span class="fa fa-refresh fa-size-x2"></span></button>
-                                    <dl-xds-agent class="button"></dl-xds-agent>
+                                    <xds-dwnl-agent class="button"></xds-dwnl-agent>
                                 </div>
                             </td>
                         </tr>
@@ -62,7 +62,7 @@
     </div>
     <div class="panel-body" [collapse]="sdksIsCollapsed">
         <div class="row col-xs-12">
-            <sdks-list-accordion [sdks]="(sdks$ | async)"></sdks-list-accordion>
+            <xds-sdks-list-accordion [sdks]="(sdks$ | async)"></xds-sdks-list-accordion>
         </div>
     </div>
 </div>
@@ -82,16 +82,16 @@
     </div>
     <div class="panel-body" [collapse]="projectsIsCollapsed">
         <div class="row col-xs-12">
-            <projects-list-accordion [projects]="(projects$ | async)"></projects-list-accordion>
+            <xds-projects-list-accordion [projects]="(projects$ | async)"></xds-projects-list-accordion>
         </div>
     </div>
 </div>
 
 <!-- Modals -->
-<project-add-modal #childProjectModal [title]="'Add a new project'" [server-id]=curServerID>
-</project-add-modal>
-<sdk-add-modal  #childSdkModal [title]="'Add a new SDK'">
-</sdk-add-modal>
+<xds-project-add-modal #childProjectModal [title]="'Add a new project'" [server-id]=curServerID>
+</xds-project-add-modal>
+<xds-sdk-add-modal  #childSdkModal [title]="'Add a new SDK'">
+</xds-sdk-add-modal>
 
 <!-- only for debug -->
 <div *ngIf="false" class="row">

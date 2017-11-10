@@ -1,6 +1,6 @@
-import { Injectable } from '@angular/core';
-import { Http, Headers, RequestOptionsArgs, Response } from '@angular/http';
-import { Location } from '@angular/common';
+import { Injectable, Inject } from '@angular/core';
+import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
+import { DOCUMENT } from '@angular/common';
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
@@ -8,7 +8,7 @@ import * as io from 'socket.io-client';
 
 import { AlertService } from './alert.service';
 import { ISdk } from './sdk.service';
-import { ProjectType} from "./project.service";
+import { ProjectType } from './project.service';
 
 // Import RxJs required methods
 import 'rxjs/add/operator/map';
@@ -115,14 +115,16 @@ export class XDSAgentService {
 
     private socket: SocketIOClient.Socket;
 
-    constructor(private http: Http, private _window: Window, private alert: AlertService) {
+    constructor( @Inject(DOCUMENT) private document: Document,
+        private http: HttpClient, private alert: AlertService) {
 
         this.XdsConfig$ = this.configSubject.asObservable();
         this.Status$ = this.statusSubject.asObservable();
 
-        this.baseUrl = this._window.location.origin + '/api/v1';
+        const originUrl = this.document.location.origin;
+        this.baseUrl = originUrl + '/api/v1';
 
-        let re = this._window.location.origin.match(/http[s]?:\/\/([^\/]*)[\/]?/);
+        const re = originUrl.match(/http[s]?:\/\/([^\/]*)[\/]?/);
         if (re === null || re.length < 2) {
             console.error('ERROR: cannot determine Websocket url');
         } else {
@@ -188,8 +190,8 @@ export class XDSAgentService {
         // (project-add and project-delete events are managed by project.service)
         this.socket.on('event:server-config', ev => {
             if (ev && ev.data) {
-                let cfg: IXDServerCfg = ev.data;
-                let idx = this._config.servers.findIndex(el => el.id === cfg.id);
+                const cfg: IXDServerCfg = ev.data;
+                const idx = this._config.servers.findIndex(el => el.id === cfg.id);
                 if (idx >= 0) {
                     this._config.servers[idx] = Object.assign({}, cfg);
                 }
@@ -231,7 +233,7 @@ export class XDSAgentService {
     }
 
     setServerRetry(serverID: string, r: number) {
-        let svr = this._getServer(serverID);
+        const svr = this._getServer(serverID);
         if (!svr) {
             return Observable.of([]);
         }
@@ -249,7 +251,7 @@ export class XDSAgentService {
     }
 
     setServerUrl(serverID: string, url: string) {
-        let svr = this._getServer(serverID);
+        const svr = this._getServer(serverID);
         if (!svr) {
             return Observable.of([]);
         }
@@ -269,7 +271,7 @@ export class XDSAgentService {
     ** SDKs
     ***/
     getSdks(serverID: string): Observable<ISdk[]> {
-        let svr = this._getServer(serverID);
+        const svr = this._getServer(serverID);
         if (!svr || !svr.connected) {
             return Observable.of([]);
         }
@@ -305,24 +307,11 @@ export class XDSAgentService {
                 id: prjID,
                 rpath: dir,
                 cmd: cmd,
-                sdkID: sdkid || "",
+                sdkID: sdkid || '',
                 args: args || [],
                 env: env || [],
             });
     }
-
-    make(prjID: string, dir: string, sdkid?: string, args?: string[], env?: string[]): Observable<any> {
-        // SEB TODO add serverID
-        return this._post('/make',
-            {
-                id: prjID,
-                rpath: dir,
-                sdkID: sdkid,
-                args: args || [],
-                env: env || [],
-            });
-    }
-
 
     /**
     ** Private functions
@@ -330,17 +319,17 @@ export class XDSAgentService {
 
     private _RegisterEvents() {
         // Register to all existing events
-        this._post('/events/register', { "name": "event:all" })
+        this._post('/events/register', { 'name': 'event:all' })
             .subscribe(
             res => { },
             error => {
-                this.alert.error("ERROR while registering to all events: ", error);
+                this.alert.error('ERROR while registering to all events: ', error);
             }
             );
     }
 
     private _getServer(ID: string): IXDServerCfg {
-        let svr = this._config.servers.filter(item => item.id === ID);
+        const svr = this._config.servers.filter(item => item.id === ID);
         if (svr.length < 1) {
             return null;
         }
@@ -349,7 +338,7 @@ export class XDSAgentService {
 
     private _attachAuthHeaders(options?: any) {
         options = options || {};
-        let headers = options.headers || new Headers();
+        const headers = options.headers || new HttpHeaders();
         // headers.append('Authorization', 'Basic ' + btoa('username:password'));
         headers.append('Accept', 'application/json');
         headers.append('Content-Type', 'application/json');
@@ -361,31 +350,24 @@ export class XDSAgentService {
 
     private _get(url: string): Observable<any> {
         return this.http.get(this.baseUrl + url, this._attachAuthHeaders())
-            .map((res: Response) => res.json())
             .catch(this._decodeError);
     }
     private _post(url: string, body: any): Observable<any> {
         return this.http.post(this.baseUrl + url, JSON.stringify(body), this._attachAuthHeaders())
-            .map((res: Response) => res.json())
             .catch((error) => {
                 return this._decodeError(error);
             });
     }
     private _delete(url: string): Observable<any> {
         return this.http.delete(this.baseUrl + url, this._attachAuthHeaders())
-            .map((res: Response) => res.json())
             .catch(this._decodeError);
     }
 
     private _decodeError(err: any) {
         let e: string;
-        if (err instanceof Response) {
-            const body = err.json() || 'Agent error';
-            e = body.error || JSON.stringify(body);
-            if (!e || e === "" || e === '{"isTrusted":true}') {
-                e = `${err.status} - ${err.statusText || 'Unknown error'}`;
-            }
-        } else if (typeof err === "object") {
+        if (err instanceof HttpErrorResponse) {
+            e = err.error || err.message || 'Unknown error';
+        } else if (typeof err === 'object') {
             if (err.statusText) {
                 e = err.statusText;
             } else if (err.error) {

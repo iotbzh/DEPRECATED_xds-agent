@@ -1,9 +1,9 @@
 import { Component, Input, Pipe, PipeTransform } from '@angular/core';
-import { ProjectService, IProject, ProjectType } from "../services/project.service";
-import { AlertService } from "../services/alert.service";
+import { ProjectService, IProject, ProjectType } from '../services/project.service';
+import { AlertService } from '../services/alert.service';
 
 @Component({
-    selector: 'project-card',
+    selector: 'xds-project-card',
     template: `
         <div class="row">
             <div class="col-xs-12">
@@ -44,7 +44,7 @@ import { AlertService } from "../services/alert.service";
             </tbody>
         </table >
     `,
-    styleUrls: ['./app/config/config.component.css']
+    styleUrls: ['../config/config.component.css']
 })
 
 export class ProjectCardComponent {
@@ -61,7 +61,7 @@ export class ProjectCardComponent {
         this.projectSvr.Delete(prj)
             .subscribe(res => {
             }, err => {
-                this.alert.error("Delete ERROR: " + err);
+                this.alert.error('Delete ERROR: ' + err);
             });
     }
 
@@ -69,7 +69,7 @@ export class ProjectCardComponent {
         this.projectSvr.Sync(prj)
             .subscribe(res => {
             }, err => {
-                this.alert.error("ERROR: " + err);
+                this.alert.error('ERROR: ' + err);
             });
     }
 
@@ -83,8 +83,8 @@ export class ProjectCardComponent {
 export class ProjectReadableTypePipe implements PipeTransform {
     transform(type: ProjectType): string {
         switch (type) {
-            case ProjectType.NATIVE_PATHMAP: return "Native (path mapping)";
-            case ProjectType.SYNCTHING: return "Cloud (Syncthing)";
+            case ProjectType.NATIVE_PATHMAP: return 'Native (path mapping)';
+            case ProjectType.SYNCTHING: return 'Cloud (Syncthing)';
             default: return String(type);
         }
     }

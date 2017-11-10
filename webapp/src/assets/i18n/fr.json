@@ -1,0 +1,33 @@
+{
+    "LOGIN": {
+        "EMAIL": "Email",
+        "PASSWORD": "Mot de Passe",
+        "SUBMIT_LOGIN": "S'identifier"
+    },
+    "HOME": {
+        "TITLE": "Bienvenue"
+    },
+    "MENUBAR": {
+        "HOME": "Accueil",
+        "BUILD": "Build"
+    },
+    "SETTINGS": {
+        "HOME": {
+            "TITLE": "Paramètres"
+        }
+    },
+    "EVENT_EMMITER": {
+        "SEL_LANG": "Selection de la langue"
+    },
+    "POPUP": {
+        "CONFIRM": "Confirmer le changement de compte",
+        "CANCEL": "Annuler",
+        "TIME-LEFT": "Temps restant",
+        "SECONDS": "secondes"
+    },
+    "TOOLTIP": {
+        "PROJECTS": {
+            "NEW": "un nouveau projet a été créé"
+        }
+    }
+}

@@ -18,9 +18,9 @@
                             <th>Cross SDK</th>
                             <td>
                                 <!-- FIXME why not working ?
-                        <sdk-select-dropdown [sdks]="(sdks$ | async)"></sdk-select-dropdown>
+                        <xds-sdk-select-dropdown [sdks]="(sdks$ | async)"></xds-sdk-select-dropdown>
                         -->
-                                <sdk-select-dropdown></sdk-select-dropdown>
+                                <xds-sdk-select-dropdown></xds-sdk-select-dropdown>
                             </td>
                         </tr>
                         <tr>
@@ -83,7 +83,6 @@
                         <button class="btn btn-primary btn-large" (click)="build()" [disabled]="!curProject">Build</button>
                         <button class="btn btn-primary btn-large" (click)="populate()" [disabled]="!curProject ">Populate</button>
                         <button *ngIf="debugEnable" class="btn btn-primary btn-large" (click)="execCmd()" [disabled]="!curProject ">Execute command</button>
-                        <button *ngIf="debugEnable" class="btn btn-primary btn-large" (click)="make()" [disabled]="!curProject ">Make</button>
                     </div>
                 </div>
             </div>

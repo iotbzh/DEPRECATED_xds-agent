@@ -1,0 +1,18 @@
+.wide img {
+    width: 98%;
+}
+.carousel-item {
+    max-height: 90%;
+}
+h1, h2, h3, h4, p {
+    color: #330066;
+}
+.html-inner {
+    color: #330066;
+}
+h1 {
+    font-size: 4em;
+}
+p {
+    font-size: 2.5em;
+}

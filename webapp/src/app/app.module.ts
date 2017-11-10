@@ -1,7 +1,11 @@
 import { NgModule } from '@angular/core';
+import { HttpClientModule, HttpClient } from '@angular/common/http';
 import { BrowserModule } from '@angular/platform-browser';
-import { HttpModule } from "@angular/http";
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
+import { TranslateHttpLoader } from '@ngx-translate/http-loader';
+import { FileUploadModule } from 'ng2-file-upload';
+import { LocationStrategy, HashLocationStrategy } from '@angular/common';
 import { CookieModule } from 'ngx-cookie';
 
 // Import bootstrap
@@ -14,39 +18,51 @@ import { CollapseModule } from 'ngx-bootstrap/collapse';
 import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
 
 // Import the application components and services.
-import { Routing, AppRoutingProviders } from './app.routing';
-import { AppComponent } from "./app.component";
+import { AppRoutingModule } from './app-routing.module';
+import { AppComponent } from './app.component';
 import { AlertComponent } from './alert/alert.component';
-import { ConfigComponent } from "./config/config.component";
-import { DlXdsAgentComponent, CapitalizePipe } from "./config/downloadXdsAgent.component";
-import { ProjectCardComponent } from "./projects/projectCard.component";
-import { ProjectReadableTypePipe } from "./projects/projectCard.component";
-import { ProjectsListAccordionComponent } from "./projects/projectsListAccordion.component";
-import { ProjectAddModalComponent} from "./projects/projectAddModal.component";
-import { SdkCardComponent } from "./sdks/sdkCard.component";
-import { SdksListAccordionComponent } from "./sdks/sdksListAccordion.component";
-import { SdkSelectDropdownComponent } from "./sdks/sdkSelectDropdown.component";
-import { SdkAddModalComponent} from "./sdks/sdkAddModal.component";
+import { HomeComponent } from './home/home.component';
+import { ConfigComponent } from './config/config.component';
+import { DwnlAgentComponent } from './config/downloadXdsAgent.component';
+import { DevelComponent } from './devel/devel.component';
+import { BuildComponent } from './devel/build/build.component';
+import { ProjectCardComponent } from './projects/projectCard.component';
+import { ProjectReadableTypePipe } from './projects/projectCard.component';
+import { ProjectsListAccordionComponent } from './projects/projectsListAccordion.component';
+import { ProjectAddModalComponent } from './projects/projectAddModal.component';
+import { SdkCardComponent } from './sdks/sdkCard.component';
+import { SdksListAccordionComponent } from './sdks/sdksListAccordion.component';
+import { SdkSelectDropdownComponent } from './sdks/sdkSelectDropdown.component';
+import { SdkAddModalComponent } from './sdks/sdkAddModal.component';
 
-import { HomeComponent } from "./home/home.component";
-import { DevelComponent } from "./devel/devel.component";
-import { BuildComponent } from "./devel/build/build.component";
-import { XDSAgentService } from "./services/xdsagent.service";
-import { ConfigService } from "./services/config.service";
-import { ProjectService } from "./services/project.service";
 import { AlertService } from './services/alert.service';
+import { ConfigService } from './services/config.service';
+import { ProjectService } from './services/project.service';
+import { SdkService } from './services/sdk.service';
 import { UtilsService } from './services/utils.service';
-import { SdkService } from "./services/sdk.service";
+import { XDSAgentService } from './services/xdsagent.service';
 
+import { SafePipe } from './common/safe.pipe';
 
+export function createTranslateLoader(http: HttpClient) {
+    return new TranslateHttpLoader(http, './assets/i18n/', '.json');
+}
 
 @NgModule({
     imports: [
         BrowserModule,
-        HttpModule,
         FormsModule,
         ReactiveFormsModule,
-        Routing,
+        HttpClientModule,
+        AppRoutingModule,
+        FileUploadModule,
+        TranslateModule.forRoot({
+            loader: {
+                provide: TranslateLoader,
+                useFactory: (createTranslateLoader),
+                deps: [HttpClient]
+            }
+        }),
         CookieModule.forRoot(),
         AlertModule.forRoot(),
         ModalModule.forRoot(),
@@ -58,13 +74,12 @@ import { SdkService } from "./services/sdk.service";
     ],
     declarations: [
         AppComponent,
-        AlertComponent,
         HomeComponent,
-        BuildComponent,
-        DevelComponent,
+        AlertComponent,
         ConfigComponent,
-        DlXdsAgentComponent,
-        CapitalizePipe,
+        DwnlAgentComponent,
+        DevelComponent,
+        BuildComponent,
         ProjectCardComponent,
         ProjectReadableTypePipe,
         ProjectsListAccordionComponent,
@@ -73,21 +88,21 @@ import { SdkService } from "./services/sdk.service";
         SdksListAccordionComponent,
         SdkSelectDropdownComponent,
         SdkAddModalComponent,
+        SafePipe
     ],
     providers: [
-        AppRoutingProviders,
         {
-            provide: Window,
-            useValue: window
+            provide: LocationStrategy, useClass: HashLocationStrategy,
         },
-        XDSAgentService,
+        AlertService,
         ConfigService,
         ProjectService,
-        AlertService,
-        UtilsService,
         SdkService,
+        UtilsService,
+        XDSAgentService
     ],
     bootstrap: [AppComponent]
 })
 export class AppModule {
+    constructor() { }
 }

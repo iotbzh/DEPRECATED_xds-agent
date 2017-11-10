@@ -1,9 +1,9 @@
-import { Component, Input } from "@angular/core";
+import { Component, Input } from '@angular/core';
 
-import { ISdk } from "../services/sdk.service";
+import { ISdk } from '../services/sdk.service';
 
 @Component({
-    selector: 'sdks-list-accordion',
+    selector: 'xds-sdks-list-accordion',
     template: `
         <accordion>
             <accordion-group #group *ngFor="let sdk of sdks">
@@ -12,7 +12,7 @@ import { ISdk } from "../services/sdk.service";
                     <i class="pull-right float-xs-right fa"
                     [ngClass]="{'fa-chevron-down': group.isOpen, 'fa-chevron-right': !group.isOpen}"></i>
                 </div>
-                <sdk-card [sdk]="sdk"></sdk-card>
+                <xds-sdk-card [sdk]="sdk"></xds-sdk-card>
             </accordion-group>
         </accordion>
     `

@@ -1,19 +1,20 @@
-import { Component, ViewChild, OnInit } from "@angular/core";
+import { Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
-import { FormControl, FormGroup, Validators, FormBuilder } from '@angular/forms';
 import { CollapseModule } from 'ngx-bootstrap/collapse';
 
-import { ConfigService, IConfig } from "../services/config.service";
-import { ProjectService, IProject } from "../services/project.service";
-import { XDSAgentService, IAgentStatus, IXDSConfig } from "../services/xdsagent.service";
-import { AlertService } from "../services/alert.service";
-import { ProjectAddModalComponent } from "../projects/projectAddModal.component";
-import { SdkService, ISdk } from "../services/sdk.service";
-import { SdkAddModalComponent } from "../sdks/sdkAddModal.component";
+import { ConfigService, IConfig } from '../services/config.service';
+import { ProjectService, IProject } from '../services/project.service';
+import { XDSAgentService, IAgentStatus, IXDSConfig } from '../services/xdsagent.service';
+import { AlertService } from '../services/alert.service';
+import { ProjectAddModalComponent } from '../projects/projectAddModal.component';
+import { SdkService, ISdk } from '../services/sdk.service';
+import { SdkAddModalComponent } from '../sdks/sdkAddModal.component';
 
 @Component({
-    templateUrl: './app/config/config.component.html',
-    styleUrls: ['./app/config/config.component.css']
+  selector: 'app-config',
+  templateUrl: './config.component.html',
+  styleUrls: ['./config.component.css'],
+  encapsulation: ViewEncapsulation.None
 })
 
 // Inspired from https://embed.plnkr.co/jgDTXknPzAaqcg9XA9zq/
@@ -31,20 +32,20 @@ export class ConfigComponent implements OnInit {
     curProj: number;
     curServer: number;
     curServerID: string;
-    userEditedLabel: boolean = false;
+    userEditedLabel = false;
 
-    gConfigIsCollapsed: boolean = true;
-    sdksIsCollapsed: boolean = true;
-    projectsIsCollapsed: boolean = false;
+    gConfigIsCollapsed = true;
+    sdksIsCollapsed = true;
+    projectsIsCollapsed = false;
 
     // TODO replace by reactive FormControl + add validation
-    xdsServerConnected: boolean = false;
+    xdsServerConnected = false;
     xdsServerUrl: string;
     xdsServerRetry: string;
     projectsRootDir: string;    // FIXME: should be remove when projectAddModal will always return full path
     showApplyBtn = {    // Used to show/hide Apply buttons
-        "retry": false,
-        "rootDir": false,
+        'retry': false,
+        'rootDir': false,
     };
 
     constructor(
@@ -70,7 +71,7 @@ export class ConfigComponent implements OnInit {
             if (!cfg || cfg.servers.length < 1) {
                 return;
             }
-            let svr = cfg.servers[this.curServer];
+            const svr = cfg.servers[this.curServer];
             this.curServerID = svr.id;
             this.xdsServerConnected = svr.connected;
             this.xdsServerUrl = svr.url;
@@ -81,16 +82,16 @@ export class ConfigComponent implements OnInit {
 
     submitGlobConf(field: string) {
         switch (field) {
-            case "retry":
-                let re = new RegExp('^[0-9]+$');
-                let rr = parseInt(this.xdsServerRetry, 10);
+            case 'retry':
+                const re = new RegExp('^[0-9]+$');
+                const rr = parseInt(this.xdsServerRetry, 10);
                 if (re.test(this.xdsServerRetry) && rr >= 0) {
                     this.xdsAgentSvr.setServerRetry(this.curServerID, rr);
                 } else {
-                    this.alert.warning("Not a valid number", true);
+                    this.alert.warning('Not a valid number', true);
                 }
                 break;
-            case "rootDir":
+            case 'rootDir':
                 this.configSvr.projectsRootDir = this.projectsRootDir;
                 break;
             default:
@@ -100,7 +101,7 @@ export class ConfigComponent implements OnInit {
     }
 
     xdsAgentRestartConn() {
-        let url = this.xdsServerUrl;
+        const url = this.xdsServerUrl;
         this.xdsAgentSvr.setServerUrl(this.curServerID, url);
     }
 

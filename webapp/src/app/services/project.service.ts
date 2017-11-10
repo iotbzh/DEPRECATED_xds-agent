@@ -2,25 +2,25 @@ import { Injectable, SecurityContext } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 
-import { XDSAgentService, IXDSProjectConfig } from "../services/xdsagent.service";
+import { XDSAgentService, IXDSProjectConfig } from '../services/xdsagent.service';
 
 export enum ProjectType {
-    UNSET = "",
-    NATIVE_PATHMAP = "PathMap",
-    SYNCTHING = "CloudSync"
+    UNSET = '',
+    NATIVE_PATHMAP = 'PathMap',
+    SYNCTHING = 'CloudSync'
 }
 
-export var ProjectTypes = [
-    { value: ProjectType.NATIVE_PATHMAP, display: "Path mapping" },
-    { value: ProjectType.SYNCTHING, display: "Cloud Sync" }
+export const ProjectTypes = [
+    { value: ProjectType.NATIVE_PATHMAP, display: 'Path mapping' },
+    { value: ProjectType.SYNCTHING, display: 'Cloud Sync' }
 ];
 
-export var ProjectStatus = {
-    ErrorConfig: "ErrorConfig",
-    Disable: "Disable",
-    Enable: "Enable",
-    Pause: "Pause",
-    Syncing: "Syncing"
+export const ProjectStatus = {
+    ErrorConfig: 'ErrorConfig',
+    Disable: 'Disable',
+    Enable: 'Enable',
+    Pause: 'Pause',
+    Syncing: 'Syncing'
 };
 
 export interface IProject {
@@ -61,7 +61,7 @@ export class ProjectService {
 
         // Update Project data
         this.xdsSvr.ProjectState$.subscribe(prj => {
-            let i = this._getProjectIdx(prj.id);
+            const i = this._getProjectIdx(prj.id);
             if (i >= 0) {
                 // XXX for now, only isInSync and status may change
                 this._prjsList[i].isInSync = prj.isInSync;
@@ -76,20 +76,20 @@ export class ProjectService {
             if (ev && ev.data && ev.data.id) {
                 this._addProject(ev.data);
             } else {
-                console.log("Warning: received events with unknown data: ev=", ev);
+                console.log('Warning: received events with unknown data: ev=', ev);
             }
         });
         this.xdsSvr.addEventListener('event:project-delete', (ev) => {
             if (ev && ev.data && ev.data.id) {
-                let idx = this._prjsList.findIndex(item => item.id === ev.data.id);
+                const idx = this._prjsList.findIndex(item => item.id === ev.data.id);
                 if (idx === -1) {
-                    console.log("Warning: received events on unknown project id: ev=", ev);
+                    console.log('Warning: received events on unknown project id: ev=', ev);
                     return;
                 }
                 this._prjsList.splice(idx, 1);
                 this.prjsSubject.next(Object.assign([], this._prjsList));
             } else {
-                console.log("Warning: received events with unknown data: ev=", ev);
+                console.log('Warning: received events with unknown data: ev=', ev);
             }
         });
 
@@ -107,14 +107,14 @@ export class ProjectService {
         if (this.current && this.current.id) {
             return this.current.id;
         }
-        return "";
+        return '';
     }
 
     Add(prj: IProject): Observable<IProject> {
-        let xdsPrj: IXDSProjectConfig = {
-            id: "",
+        const xdsPrj: IXDSProjectConfig = {
+            id: '',
             serverId: prj.serverId,
-            label: prj.label || "",
+            label: prj.label || '',
             clientPath: prj.pathClient.trim(),
             serverPath: prj.pathServer,
             type: prj.type,
@@ -122,23 +122,23 @@ export class ProjectService {
         };
         // Send config to XDS server
         return this.xdsSvr.addProject(xdsPrj)
-            .map(xdsPrj => this._convToIProject(xdsPrj));
+            .map(xp => this._convToIProject(xp));
     }
 
     Delete(prj: IProject): Observable<IProject> {
-        let idx = this._getProjectIdx(prj.id);
-        let delPrj = prj;
+        const idx = this._getProjectIdx(prj.id);
+        const delPrj = prj;
         if (idx === -1) {
-            throw new Error("Invalid project id (id=" + prj.id + ")");
+            throw new Error('Invalid project id (id=' + prj.id + ')');
         }
         return this.xdsSvr.deleteProject(prj.id)
-            .map(res => { return delPrj; });
+            .map(res => delPrj);
     }
 
     Sync(prj: IProject): Observable<string> {
-        let idx = this._getProjectIdx(prj.id);
+        const idx = this._getProjectIdx(prj.id);
         if (idx === -1) {
-            throw new Error("Invalid project id (id=" + prj.id + ")");
+            throw new Error('Invalid project id (id=' + prj.id + ')');
         }
         return this.xdsSvr.syncProject(prj.id);
     }
@@ -155,7 +155,7 @@ export class ProjectService {
 
     private _convToIProject(rPrj: IXDSProjectConfig): IProject {
         // Convert XDSFolderConfig to IProject
-        let pp: IProject = {
+        const pp: IProject = {
             id: rPrj.id,
             serverId: rPrj.serverId,
             label: rPrj.label,
@@ -174,7 +174,7 @@ export class ProjectService {
     private _addProject(rPrj: IXDSProjectConfig, noNext?: boolean): IProject {
 
         // Convert XDSFolderConfig to IProject
-        let pp = this._convToIProject(rPrj);
+        const pp = this._convToIProject(rPrj);
 
         // add new project
         this._prjsList.push(pp);

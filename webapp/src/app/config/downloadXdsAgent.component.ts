@@ -1,7 +1,7 @@
-import { Component, Input, Pipe, PipeTransform } from '@angular/core';
+import { Component } from '@angular/core';
 
 @Component({
-    selector: 'dl-xds-agent',
+    selector: 'xds-dwnl-agent',
     template: `
         <template #popTemplate>
             <h3>Install xds-agent:</h3>
@@ -28,20 +28,8 @@ import { Component, Input, Pipe, PipeTransform } from '@angular/core';
     `]
 })
 
-export class DlXdsAgentComponent {
+export class DwnlAgentComponent {
 
-    public url_OS_Linux = "https://en.opensuse.org/LinuxAutomotive#Installation_AGL_XDS";
-    public url_OS_Other = "https://github.com/iotbzh/xds-agent#how-to-install-on-other-platform";
-}
-
-@Pipe({
-    name: 'capitalize'
-})
-export class CapitalizePipe implements PipeTransform {
-    transform(value: string): string {
-        if (value) {
-            return value.charAt(0).toUpperCase() + value.slice(1);
-        }
-        return value;
-    }
+    public url_OS_Linux = 'https://en.opensuse.org/LinuxAutomotive#Installation_AGL_XDS';
+    public url_OS_Other = 'https://github.com/iotbzh/xds-agent#how-to-install-on-other-platform';
 }

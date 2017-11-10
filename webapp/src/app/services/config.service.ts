@@ -3,10 +3,11 @@ import { CookieService } from 'ngx-cookie';
 import { Observable } from 'rxjs/Observable';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 
-import { AlertService, IAlert } from "../services/alert.service";
-import { UtilsService } from "../services/utils.service";
+import { AlertService, IAlert } from '../services/alert.service';
+import { UtilsService } from '../services/utils.service';
 
 export interface IConfig {
+    language: string;
     projectsRootDir: string;
 }
 
@@ -18,7 +19,7 @@ export class ConfigService {
     private confSubject: BehaviorSubject<IConfig>;
     private confStore: IConfig;
 
-    constructor(private _window: Window,
+    constructor(
         private cookie: CookieService,
         private alert: AlertService,
         private utils: UtilsService,
@@ -31,14 +32,15 @@ export class ConfigService {
     // Load config
     load() {
         // Try to retrieve previous config from cookie
-        let cookConf = this.cookie.getObject("xds-config");
+        const cookConf = this.cookie.getObject('xds-config');
         if (cookConf != null) {
             this.confStore = <IConfig>cookConf;
         } else {
             // Set default config
             this.confStore = {
-                projectsRootDir: "",
-                //projects: []
+                language: 'ENG',
+                projectsRootDir: '',
+                // projects: []
             };
         }
     }
@@ -49,8 +51,8 @@ export class ConfigService {
         this.confSubject.next(Object.assign({}, this.confStore));
 
         // Don't save projects in cookies (too big!)
-        let cfg = Object.assign({}, this.confStore);
-        this.cookie.putObject("xds-config", cfg);
+        const cfg = Object.assign({}, this.confStore);
+        this.cookie.putObject('xds-config', cfg);
     }
 
     set projectsRootDir(p: string) {

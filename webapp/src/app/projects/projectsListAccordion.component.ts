@@ -1,9 +1,9 @@
-import { Component, Input } from "@angular/core";
+import { Component, Input } from '@angular/core';
 
-import { IProject } from "../services/project.service";
+import { IProject } from '../services/project.service';
 
 @Component({
-    selector: 'projects-list-accordion',
+    selector: 'xds-projects-list-accordion',
     template: `
         <style>
             .fa.fa-exclamation-triangle {
@@ -25,7 +25,7 @@ import { IProject } from "../services/project.service";
                         <i class="fa" [ngClass]="{'fa-chevron-down': group.isOpen, 'fa-chevron-right': !group.isOpen}"></i>
                     </div>
                 </div>
-                <project-card [project]="prj"></project-card>
+                <xds-project-card [project]="prj"></xds-project-card>
             </accordion-group>
         </accordion>
     `

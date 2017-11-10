@@ -1,9 +1,9 @@
-import { Component, Input } from "@angular/core";
+import { Component, OnInit, Input } from '@angular/core';
 
-import { ISdk, SdkService } from "../services/sdk.service";
+import { ISdk, SdkService } from '../services/sdk.service';
 
 @Component({
-    selector: 'sdk-select-dropdown',
+    selector: 'xds-sdk-select-dropdown',
     template: `
         <div class="btn-group" dropdown *ngIf="curSdk" >
             <button dropdownToggle type="button" class="btn btn-primary dropdown-toggle" style="width: 20em;">
@@ -17,11 +17,11 @@ import { ISdk, SdkService } from "../services/sdk.service";
         </div>
     `
 })
-export class SdkSelectDropdownComponent {
+export class SdkSelectDropdownComponent implements OnInit {
 
     // FIXME investigate to understand why not working with sdks as input
-    // <sdk-select-dropdown [sdks]="(sdks$ | async)"></sdk-select-dropdown>
-    //@Input() sdks: ISdk[];
+    // <xds-sdk-select-dropdown [sdks]="(sdks$ | async)"></xds-sdk-select-dropdown>
+    // @Input() sdks: ISdk[];
     sdks: ISdk[];
 
     curSdk: ISdk;
