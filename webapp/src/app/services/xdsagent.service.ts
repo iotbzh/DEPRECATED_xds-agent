@@ -323,7 +323,7 @@ export class XDSAgentService {
             .subscribe(
             res => { },
             error => {
-                this.alert.error('ERROR while registering to all events: ', error);
+                this.alert.error('ERROR while registering to all events: ' + error);
             }
             );
     }
@@ -366,7 +366,7 @@ export class XDSAgentService {
     private _decodeError(err: any) {
         let e: string;
         if (err instanceof HttpErrorResponse) {
-            e = err.error || err.message || 'Unknown error';
+            e = (err.error && err.error.error) ? err.error.error : err.message || 'Unknown error';
         } else if (typeof err === 'object') {
             if (err.statusText) {
                 e = err.statusText;
@@ -378,6 +378,7 @@ export class XDSAgentService {
         } else {
             e = err.message ? err.message : err.toString();
         }
+        console.log('xdsagent.service - ERROR: ', e);
         return Observable.throw(e);
     }
 }

@@ -20,7 +20,8 @@ import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
 // Import the application components and services.
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { AlertComponent } from './alert/alert.component';
+import { AppTopnavComponent } from './app-topnav/app-topnav.component';
+import { AppAlertComponent } from './app-alert/app-alert.component';
 import { HomeComponent } from './home/home.component';
 import { ConfigComponent } from './config/config.component';
 import { DwnlAgentComponent } from './config/downloadXdsAgent.component';
@@ -74,8 +75,9 @@ export function createTranslateLoader(http: HttpClient) {
     ],
     declarations: [
         AppComponent,
+        AppTopnavComponent,
+        AppAlertComponent,
         HomeComponent,
-        AlertComponent,
         ConfigComponent,
         DwnlAgentComponent,
         DevelComponent,
@@ -88,7 +90,7 @@ export function createTranslateLoader(http: HttpClient) {
         SdksListAccordionComponent,
         SdkSelectDropdownComponent,
         SdkAddModalComponent,
-        SafePipe
+        SafePipe,
     ],
     providers: [
         {

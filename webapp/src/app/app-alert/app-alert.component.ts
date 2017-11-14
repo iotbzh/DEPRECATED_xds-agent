@@ -16,7 +16,7 @@ import { AlertService, IAlert } from '../services/alert.service';
 `,
 })
 
-export class AlertComponent {
+export class AppAlertComponent {
 
     alerts$: Observable<IAlert[]>;
 

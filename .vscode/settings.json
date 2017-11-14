@@ -18,6 +18,7 @@
         "**/vscode-extension/**",
         "**/.git/**",
         "**/vendor/**",
+        "**/webapp/dist/**",
         ".vscode",
         "typings"
     ],
@@ -62,9 +63,10 @@
         "graphx",
         "Truthy",
         "darkviolet",
-        "dwnl"
+        "dwnl",
+        "topnav",
+        "leftbar"
     ],
-
     // codelyzer
     "tslint.rulesDirectory": "./webapp/node_modules/codelyzer",
     "typescript.tsdk": "webapp/node_modules/typescript/lib",

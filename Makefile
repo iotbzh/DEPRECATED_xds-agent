@@ -100,10 +100,10 @@ distclean: clean
 	cd $(ROOT_SRCDIR) && rm -rf $(LOCAL_BINDIR) ./tools ./glide.lock ./vendor ./*.zip ./webapp/node_modules ./webapp/dist
 
 webapp: webapp/install
-	(cd webapp && gulp build)
+	(cd webapp && npm run build)
 
 webapp/debug:
-	(cd webapp && gulp watch &)
+	(cd webapp && npm run watch)
 
 webapp/install:
 	(cd webapp && npm install)

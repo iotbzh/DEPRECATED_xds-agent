@@ -19,6 +19,7 @@
     "url": "https://github.com/iotbzh/xds-agent/issues"
   },
   "scripts": {
+    "clean": "rm -rf dist/",
     "build": "ng build --prod --verbose",
     "start": "ng serve --prod --port=8000",
     "watch": "ng build --preserve-symlinks --watch",
