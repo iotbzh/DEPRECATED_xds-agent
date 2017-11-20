@@ -1,0 +1,46 @@
+<nb-layout [center]="layout.id === 'center-column'" windowMode>
+
+  <nb-layout-header fixed>
+    <ngx-header [position]="sidebar.id === 'left' ? 'normal': 'inverse'"></ngx-header>
+  </nb-layout-header>
+
+  <nb-sidebar class="menu-sidebar" tag="menu-sidebar" responsive [right]="sidebar.id === 'right'">
+
+    <nb-sidebar-header (click)="toogleSidebar()">
+      <!-- XXX - ugly rework -->
+      <nb-actions *ngIf="sidebar.id === 'left'" size="small" class="header-container right">
+        <nb-action *ngIf="!sidebarCompact" icon="fa fa-angle-double-left" style="margin-left: 80%;"></nb-action>
+        <nb-action *ngIf="sidebarCompact" icon="fa fa-angle-double-right"></nb-action>
+      </nb-actions>
+      <nb-actions *ngIf="sidebar.id === 'right'" size="small" class="header-container left">
+        <nb-action *ngIf="!sidebarCompact" icon="fa fa-angle-double-right" style="margin-right: 80%;"></nb-action>
+        <nb-action *ngIf="sidebarCompact" icon="fa fa-angle-double-left"></nb-action>
+      </nb-actions>
+    </nb-sidebar-header>
+
+    <ng-content select="nb-menu"></ng-content>
+
+    <nb-sidebar-footer>
+    </nb-sidebar-footer>
+  </nb-sidebar>
+
+  <nb-layout-column class="main-content">
+    <ng-content select="router-outlet"></ng-content>
+  </nb-layout-column>
+
+  <nb-layout-column left class="small" *ngIf="layout.id === 'two-column' || layout.id === 'three-column'">
+    <nb-menu [items]="subMenu"></nb-menu>
+  </nb-layout-column>
+
+  <nb-layout-column right class="small" *ngIf="layout.id === 'three-column'">
+    <nb-menu [items]="subMenu"></nb-menu>
+  </nb-layout-column>
+
+  <nb-layout-footer fixed>
+    <ngx-footer></ngx-footer>
+  </nb-layout-footer>
+
+  <nb-sidebar class="settings-sidebar" tag="settings-sidebar" state="collapsed" fixed [right]="sidebar.id !== 'right'">
+    <ngx-theme-settings></ngx-theme-settings>
+  </nb-sidebar>
+</nb-layout>

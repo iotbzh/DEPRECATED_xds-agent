@@ -1,0 +1,51 @@
+<div class="modal-header">
+  <span>Add a new project</span>
+  <button class="close" aria-label="Close" (click)="closeModal()">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+
+<div class="modal-body row">
+  <div class="col-12">
+    <form [formGroup]="addProjectForm" (ngSubmit)="onSubmit()">
+
+      <div class="form-group row">
+        <label for="sharing-type" class="col-sm-3 col-form-label">Sharing Type</label>
+        <div class="col-sm-9">
+          <select id="select-sharing-type" class="form-control" formControlName="type">
+            <option *ngFor="let t of projectTypes" [value]="t.value">{{t.display}}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group row">
+        <label for="select-local-path" class="col-sm-3 col-form-label">Local Path</label>
+        <div class="col-sm-9">
+          <input type="text" id="inputLocalPath" class="form-control" formControlName="pathCli" placeholder="/tmp/myProject" (change)="onChangeLocalProject($event)">
+        </div>
+      </div>
+
+      <div class="form-group row">
+        <label for="select-server-path" class="col-sm-3 col-form-label">Server Path</label>
+        <div class="col-sm-9">
+          <input type="text" id="inputServerPath" class="form-control" formControlName="pathSvr">
+        </div>
+      </div>
+
+      <div class="form-group row">
+        <label for="select-label" class="col-sm-3 col-form-label">Label</label>
+        <div class="col-sm-9">
+          <input type="text" id="inputLabel" class="form-control" formControlName="label" (keyup)="onKeyLabel($event)">
+        </div>
+      </div>
+
+      <div class="offset-sm-3 col-sm-9">
+        <button class="btn btn-md btn-secondary" (click)="cancelAction=true; closeModal()"> Cancel </button>
+        <button class="btn btn-md btn-primary" type="submit" [disabled]="!addProjectForm.valid">Add Folder</button>
+      </div>
+    </form>
+  </div>
+</div>
+<div class="modal-footer form-group">
+</div>

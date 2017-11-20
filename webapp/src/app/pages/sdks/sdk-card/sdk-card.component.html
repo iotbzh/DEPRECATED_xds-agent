@@ -1,0 +1,48 @@
+<nb-card class="xds-sdks">
+  <nb-card-header>
+
+    <div class="row">
+      <div class="col-12 col-md-8">
+        {{ labelGet(sdk) }}
+      </div>
+      <div class="col-6 col-md-4 text-right" role="group">
+        <button class="btn btn-outline-danger btn-tn btn-xds" (click)="delete(sdk)">
+          <span class="fa fa-trash fa-size-x2"></span>
+        </button>
+      </div>
+    </div>
+  </nb-card-header>
+
+  <nb-card-body>
+    <table class="table table-striped">
+      <tbody>
+        <tr>
+          <th>
+            <span class="fa fa-fw fa-id-badge"></span>&nbsp;
+            <span>SDK ID</span>
+          </th>
+          <td>{{ sdk.id }}</td>
+        </tr>
+        <tr>
+          <th><span class="fa fa-fw fa-user"></span>&nbsp;<span>Profile</span></th>
+          <td>{{ sdk.profile }}</td>
+        </tr>            <tr>
+            <th><span class="fa fa-fw fa-tasks"></span>&nbsp;<span>Architecture</span></th>
+            <td>{{ sdk.arch }}</td>
+        </tr>
+        <tr>
+            <th><span class="fa fa-fw fa-code-fork"></span>&nbsp;<span>Version</span></th>
+            <td>{{ sdk.version }}</td>
+        </tr>
+        <tr>
+            <th><span class="fa fa-fw fa-folder-open-o"></span>&nbsp;<span>Sdk path</span></th>
+            <td>{{ sdk.path}}</td>
+        </tr>
+      </tbody>
+    </table>
+  </nb-card-body>
+
+  <nb-card-footer>
+    <!-- <pre>{{sdk | json}}</pre> -->
+  </nb-card-footer>
+</nb-card>

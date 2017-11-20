@@ -1,0 +1,26 @@
+<div class="row">
+  <div class="col-12">
+    <nb-card-body>
+      <div class="col-9">
+        <nb-actions size="medium">
+          <nb-action>
+            <button (click)="add()">
+                <i class="nb-plus"></i>
+                <span>Add Project</span>
+            </button>
+          </nb-action>
+        </nb-actions>
+      </div>
+      <div class="col-3 right">
+        <nb-actions size="medium">
+          <nb-action>
+            <nb-search type="rotate-layout"></nb-search>
+          </nb-action>
+        </nb-actions>
+      </div>
+    </nb-card-body>
+  </div>
+  <div class="col-md-12 col-lg-12 col-xxxl-6" *ngFor="let prj of (projects$ | async)">
+    <xds-project-card [project]="prj"></xds-project-card>
+  </div>
+</div>

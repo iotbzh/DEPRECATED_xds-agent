@@ -32,8 +32,3 @@ Start the application by running the following command:
 > npm start
 
 The application will be displayed in the browser.
-
-## TODO
-
-- Add SASS support
-   http://foundation.zurb.com/sites/docs/sass.html

@@ -1,0 +1,83 @@
+@import '../../@theme/styles/themes';
+@import '~@nebular/theme/components/card/card.component.theme';
+@import '~bootstrap/scss/mixins/breakpoints';
+@import '~@nebular/theme/styles/global/bootstrap/breakpoints';
+@include nb-install-component() {
+  nb-card-body {
+    display: flex;
+    align-items: center;
+  }
+  .action-groups-header {
+    flex-basis: 20%;
+    color: nb-theme(card-header-fg-heading);
+    font-family: nb-theme(card-header-font-family);
+    font-size: nb-theme(card-header-font-size);
+    font-weight: nb-theme(card-header-font-weight);
+  }
+  .nb-actions {
+    flex-basis: 80%;
+  }
+  .right {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    order: 1;
+    flex-direction: row-reverse;
+  }
+  nb-actions>nb-action {
+    padding: 0;
+  }
+  nb-action {
+    i {
+      color: nb-theme(color-fg);
+      font-size: 2.5rem;
+      margin-right: 1rem;
+    }
+    span {
+      font-family: nb-theme(font-secondary);
+      font-weight: nb-theme(font-weight-bold);
+      color: nb-theme(color-fg-heading);
+      text-transform: uppercase;
+    }
+    button {
+      margin: 0 auto;
+      padding: 0;
+      cursor: pointer;
+      border: none;
+      background: none;
+      display: flex;
+      align-items: center;
+      &:focus {
+        box-shadow: none;
+        outline: none;
+      }
+    }
+  }
+  @include media-breakpoint-down(md) {
+    nb-actions nb-action {
+      padding: 0 0.75rem;
+    }
+  }
+  @include media-breakpoint-down(sm) {
+    nb-card-body {
+      padding: 1rem;
+    }
+    nb-action {
+      font-size: 0.75rem;
+      i {
+        font-size: 2rem;
+        margin-right: 0.5rem;
+      }
+    }
+  }
+  @include media-breakpoint-down(is) {
+    nb-action i {
+      font-size: 1.75rem;
+      margin: 0;
+    }
+    span {
+      display: none;
+    }
+  }
+}

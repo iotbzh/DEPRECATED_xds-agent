@@ -3,22 +3,21 @@
 <head>
   <meta charset="utf-8">
   <title>XDS Dashboard</title>
-  <base href="/">
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
-
-  <link rel="stylesheet" href="./assets/css/main.css">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
+<body>
+  <ngx-app>
+    <div style="text-align:center; position:absolute; top:50%; width:100%; transform:translate(0,-50%);">
+      <img id="logo-iot" src="assets/images/iot-bzh-logo-small.png">
+      <br> Loading...
+      <i class="fa fa-spinner fa-spin fa-fw"></i>
+    </div>
+  </ngx-app>
 
-<body style="padding-top: 70px;">   <!-- padding needed due to fixed navbar -->
-    <app-root>
-        <div style="text-align:center; position:absolute; top:50%; width:100%; transform:translate(0,-50%);">
-            <img id="logo-iot" src="assets/images/iot-bzh-logo-small.png">
-            <br> Loading...
-            <i class="fa fa-spinner fa-spin fa-fw"></i>
-        </div>
-    </app-root>
+  </div>
+
 </body>
-
 </html>
