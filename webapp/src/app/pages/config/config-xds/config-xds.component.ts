@@ -15,10 +15,10 @@ import 'rxjs/add/operator/catch';
   styleUrls: ['./config-xds.component.scss'],
   templateUrl: './config-xds.component.html',
 })
-export class ConfigXdsComponent implements OnInit {
+export class ConfigXdsComponent {
 
   // TODO: cleanup agentStatus$: Observable<IAgentStatus>;
-  connecting = false;
+  applying = false;
   xdsServerUrl = '';
   server: IXDServerCfg;
 
@@ -28,17 +28,10 @@ export class ConfigXdsComponent implements OnInit {
     private XdsConfigSvr: XDSConfigService,
     private alert: AlertService,
   ) {
-  }
-
-  ngOnInit() {
     // FIXME support multiple servers
-
-    this.server = this.XdsConfigSvr.getCurServer();
-    this.xdsServerUrl = this.server.url;
-
     this.XdsConfigSvr.onCurServer().subscribe(svr => {
       this.xdsServerUrl = svr.url;
-      this.server = svr;
+      this.server = Object.assign({}, svr);
     });
   }
 
@@ -47,14 +40,16 @@ export class ConfigXdsComponent implements OnInit {
       return;
     }
     this.configFormChanged = false;
-    this.connecting = true;
+    this.applying = true;
     this.server.url = this.xdsServerUrl;
     this.XdsConfigSvr.setCurServer(this.server)
       .subscribe(cfg => {
-        this.connecting = false;
-       },
+        this.alert.info('XDS Server successfully connected (' + cfg.url + ')');
+        this.server = Object.assign({}, cfg);
+        this.applying = false;
+      },
       err => {
-        this.connecting = false;
+        this.applying = false;
         this.alert.error(err);
       });
   }

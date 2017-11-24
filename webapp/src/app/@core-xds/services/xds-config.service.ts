@@ -74,9 +74,10 @@ export class XDSConfigService {
     return Observable.of(curSvr);
   }
 
-  private _updateCurServer() {
+  private _updateCurServer(): IXDServerCfg {
     this._curServer = this._getCurServer();
     this.curServer$.next(this._curServer);
+    return this._curServer;
   }
 
   private _getCurServer(url?: string): IXDServerCfg {
