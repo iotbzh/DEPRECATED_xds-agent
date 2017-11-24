@@ -5,6 +5,10 @@
   "editor.tabSize": 2,
   // Insert spaces when pressing Tab. This setting is overriden based on the file contents when `editor.detectIndentation` is on.
   "editor.insertSpaces": true,
+
+  // .jsbeautifyrc not at root directory but under webapp/
+  "beautify.config": "webapp/.jsbeautifyrc",
+
   // Configure glob patterns for excluding files and folders.
   "files.exclude": {
     ".tmp": true,

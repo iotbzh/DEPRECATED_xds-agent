@@ -9,6 +9,20 @@ This is the web application dashboard for Cross Development System.
 
 > sudo npm install --global @angular/cli
 
+This project has been developed using [Visual Studio Code](https://code.visualstudio.com/download). Here is the list of
+recommended VSCode plugins that are used to improved quality of written code :
+
+- ext install HookyQR.beautify
+- ext install Mikael.Angular-BeastCode
+- ext install eg2.tslint
+- ext install streetsidesoftware.code-spell-checker
+- ext install DavidAnson.vscode-markdownlint
+
+And some others useful plugins:
+
+- ext install patrys.vscode-code-outline
+- ext install eamodio.gitlens
+
 ## 2. Installing dependencies
 
 Install dependencies by running the following command:
