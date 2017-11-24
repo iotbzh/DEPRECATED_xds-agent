@@ -213,26 +213,20 @@ func (xs *XdsServer) SendCommand(cmd string, body []byte) (*http.Response, error
 
 // GetVersion Send Get request to retrieve XDS Server version
 func (xs *XdsServer) GetVersion(res interface{}) error {
-	return xs._HTTPGet("/version", &res)
+	return xs.client.Get("/version", &res)
 }
 
 // GetFolders Send GET request to get current folder configuration
 func (xs *XdsServer) GetFolders(folders *[]XdsFolderConfig) error {
-	return xs._HTTPGet("/folders", folders)
+	return xs.client.Get("/folders", folders)
 }
 
 // FolderAdd Send POST request to add a folder
 func (xs *XdsServer) FolderAdd(fld *XdsFolderConfig, res interface{}) error {
-	response, err := xs._HTTPPost("/folders", fld)
+	err := xs.client.Post("/folders", fld, res)
 	if err != nil {
-		return err
+		return fmt.Errorf("FolderAdd error: %s", err.Error())
 	}
-	if response.StatusCode != 200 {
-		return fmt.Errorf("FolderAdd error status=%s", response.Status)
-	}
-	// Result is a XdsFolderConfig that is equivalent to ProjectConfig
-	err = json.Unmarshal(xs.client.ResponseToBArray(response), res)
-
 	return err
 }
 
@@ -271,7 +265,7 @@ func (xs *XdsServer) PassthroughGet(url string) {
 			nURL = strings.TrimPrefix(c.Request.URL.Path, xs.APIURL)
 		}
 		// Send Get request
-		if err := xs._HTTPGet(nURL, &data); err != nil {
+		if err := xs.client.Get(nURL, &data); err != nil {
 			if strings.Contains(err.Error(), "connection refused") {
 				xs.Connected = false
 				xs._NotifyState()
@@ -304,12 +298,20 @@ func (xs *XdsServer) PassthroughPost(url string) {
 		if strings.Contains(url, ":") {
 			nURL = strings.TrimPrefix(c.Request.URL.Path, xs.APIURL)
 		}
+
 		// Send Post request
-		response, err := xs._HTTPPost(nURL, bodyReq[:n])
+		body, err := json.Marshal(bodyReq[:n])
 		if err != nil {
 			common.APIError(c, err.Error())
 			return
 		}
+
+		response, err := xs.client.HTTPPostWithRes(nURL, string(body))
+		if err != nil {
+			common.APIError(c, err.Error())
+			return
+		}
+
 		bodyRes, err := ioutil.ReadAll(response.Body)
 		if err != nil {
 			common.APIError(c, "Cannot read response body")
@@ -321,12 +323,13 @@ func (xs *XdsServer) PassthroughPost(url string) {
 
 // EventRegister Post a request to register to an XdsServer event
 func (xs *XdsServer) EventRegister(evName string, id string) error {
-	var err error
-	_, err = xs._HTTPPost("/events/register", XdsEventRegisterArgs{
-		Name:      evName,
-		ProjectID: id,
-	})
-	return err
+	return xs.client.Post(
+		"/events/register",
+		XdsEventRegisterArgs{
+			Name:      evName,
+			ProjectID: id,
+		},
+		nil)
 }
 
 // EventOn Register a callback on events reception
@@ -507,24 +510,6 @@ func (xs *XdsServer) _CreateConnectHTTP() error {
 	return nil
 }
 
-// _HTTPGet .
-func (xs *XdsServer) _HTTPGet(url string, data interface{}) error {
-	var dd []byte
-	if err := xs.client.HTTPGet(url, &dd); err != nil {
-		return err
-	}
-	return json.Unmarshal(dd, &data)
-}
-
-// _HTTPPost .
-func (xs *XdsServer) _HTTPPost(url string, data interface{}) (*http.Response, error) {
-	body, err := json.Marshal(data)
-	if err != nil {
-		return nil, err
-	}
-	return xs.client.HTTPPostWithRes(url, string(body))
-}
-
 //  Re-established connection
 func (xs *XdsServer) _reconnect() error {
 	err := xs._connect(true)
@@ -539,7 +524,7 @@ func (xs *XdsServer) _reconnect() error {
 func (xs *XdsServer) _connect(reConn bool) error {
 
 	xdsCfg := XdsServerConfig{}
-	if err := xs._HTTPGet("/config", &xdsCfg); err != nil {
+	if err := xs.client.Get("/config", &xdsCfg); err != nil {
 		xs.Connected = false
 		if !reConn {
 			xs._NotifyState()
