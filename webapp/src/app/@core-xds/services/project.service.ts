@@ -246,7 +246,7 @@ export class ProjectService {
     }
     const delId = this._prjsList[idx].id;
     this._prjsList.splice(idx, 1);
-    if (this._prjsList[idx].id === this._current.id) {
+    if (delId === this._current.id) {
       this.setCurrent(this._prjsList[0]);
     }
     this.prjsSubject.next(this._prjsList);
