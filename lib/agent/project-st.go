@@ -1,6 +1,8 @@
 package agent
 
 import (
+	"fmt"
+
 	"github.com/iotbzh/xds-agent/lib/apiv1"
 	st "github.com/iotbzh/xds-agent/lib/syncthing"
 )
@@ -56,8 +58,8 @@ func (p *STProject) Add(cfg apiv1.ProjectConfig) (*apiv1.ProjectConfig, error) {
 		p.Log.Errorf("Project ID in XDSServer and local ST differ: %s != %s", svrPrj.ID, locPrj.ID)
 	}
 
-	// Use Update function to setup remains fields
-	return p.UpdateProject(*svrPrj)
+	// Use Setup function to setup remains fields
+	return p.Setup(*svrPrj)
 }
 
 // Delete a project
@@ -77,16 +79,16 @@ func (p *STProject) GetProject() *apiv1.ProjectConfig {
 	return &prj
 }
 
-// UpdateProject Update project config
-func (p *STProject) UpdateProject(prj apiv1.ProjectConfig) (*apiv1.ProjectConfig, error) {
+// Setup Setup local project config
+func (p *STProject) Setup(prj apiv1.ProjectConfig) (*apiv1.ProjectConfig, error) {
 	// Update folder
 	p.folder = p.server.ProjectToFolder(prj)
 	svrPrj := p.GetProject()
 
 	// Register events to update folder status
 	// Register to XDS Server events
-	p.server.EventOn("event:FolderStateChanged", "", p._cbServerFolderChanged)
-	if err := p.server.EventRegister("FolderStateChanged", svrPrj.ID); err != nil {
+	p.server.EventOn("event:folder-state-change", "", p._cbServerFolderChanged)
+	if err := p.server.EventRegister("folder-state-change", svrPrj.ID); err != nil {
 		p.Log.Warningf("XDS Server EventRegister failed: %v", err)
 		return svrPrj, err
 	}
@@ -101,6 +103,21 @@ func (p *STProject) UpdateProject(prj apiv1.ProjectConfig) (*apiv1.ProjectConfig
 	}
 
 	return svrPrj, nil
+}
+
+// Update Update some field of a project
+func (p *STProject) Update(prj apiv1.ProjectConfig) (*apiv1.ProjectConfig, error) {
+
+	if p.folder.ID != prj.ID {
+		return nil, fmt.Errorf("Invalid id")
+	}
+
+	err := p.server.FolderUpdate(p.server.ProjectToFolder(prj), p.folder)
+	if err != nil {
+		return nil, err
+	}
+
+	return p.GetProject(), nil
 }
 
 // GetServer Get the XdsServer that holds this project
@@ -142,7 +159,7 @@ func (p *STProject) _cbServerFolderChanged(pData interface{}, data interface{}) 
 		p.folder.DataCloudSync.STSvrIsInSync = evt.Folder.IsInSync
 		p.folder.DataCloudSync.STSvrStatus = evt.Folder.Status
 
-		if err := p.events.Emit(apiv1.EVTProjectChange, p.server.FolderToProject(*p.folder)); err != nil {
+		if err := p.events.Emit(apiv1.EVTProjectChange, p.server.FolderToProject(*p.folder), ""); err != nil {
 			p.Log.Warningf("Cannot notify project change (from server): %v", err)
 		}
 	}
@@ -181,7 +198,7 @@ func (p *STProject) _cbLocalSTEvents(ev st.Event, data *st.EventsCBData) {
 		p.folder.DataCloudSync.STLocIsInSync = inSync
 		p.folder.DataCloudSync.STLocStatus = sts
 
-		if err := p.events.Emit(apiv1.EVTProjectChange, p.server.FolderToProject(*p.folder)); err != nil {
+		if err := p.events.Emit(apiv1.EVTProjectChange, p.server.FolderToProject(*p.folder), ""); err != nil {
 			p.Log.Warningf("Cannot notify project change (local): %v", err)
 		}
 	}

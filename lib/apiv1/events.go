@@ -40,9 +40,10 @@ var EVTAllList = []string{
 
 // EventMsg Event message send over Websocket, data format depend to Type (see DecodeXXX function)
 type EventMsg struct {
-	Time string      `json:"time"`
-	Type string      `json:"type"`
-	Data interface{} `json:"data"`
+	Time          string      `json:"time"`      // Timestamp
+	FromSessionID string      `json:"sessionID"` // Session ID of client that emits this event
+	Type          string      `json:"type"`      // Data type
+	Data          interface{} `json:"data"`      // Data
 }
 
 // DecodeServerCfg Helper to decode Data field type ServerCfg

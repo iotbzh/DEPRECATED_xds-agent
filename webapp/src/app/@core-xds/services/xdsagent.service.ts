@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@angular/core';
+import { Injectable, Inject, isDevMode } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { DOCUMENT } from '@angular/common';
 import { Observable } from 'rxjs/Observable';
@@ -44,6 +44,7 @@ export interface IXDSProjectConfig {
   status?: string;
   isInSync?: boolean;
   defaultSdkID: string;
+  clientData?: string;
 }
 
 export interface IXDSVer {
@@ -107,12 +108,16 @@ export class XDSAgentService {
 
   public XdsConfig$: Observable<IXDSConfig>;
   public Status$: Observable<IAgentStatus>;
-  public ProjectState$ = <Subject<IXDSProjectConfig>>new Subject();
   public CmdOutput$ = <Subject<ICmdOutput>>new Subject();
   public CmdExit$ = <Subject<ICmdExit>>new Subject();
 
+  protected projectAdd$ = new Subject<IXDSProjectConfig>();
+  protected projectDel$ = new Subject<IXDSProjectConfig>();
+  protected projectChange$ = new Subject<IXDSProjectConfig>();
+
   private baseUrl: string;
   private wsUrl: string;
+  private httpSessionID: string;
   private _config = <IXDSConfig>{ servers: [] };
   private _status = { connected: false, servers: [] };
 
@@ -130,14 +135,25 @@ export class XDSAgentService {
     const originUrl = this.document.location.origin;
     this.baseUrl = originUrl + '/api/v1';
 
-    const re = originUrl.match(/http[s]?:\/\/([^\/]*)[\/]?/);
-    if (re === null || re.length < 2) {
-      console.error('ERROR: cannot determine Websocket url');
-    } else {
-      this.wsUrl = 'ws://' + re[1];
-      this._handleIoSocket();
-      this._RegisterEvents();
-    }
+    // Retrieve Session ID / token
+    this.http.get(this.baseUrl + '/version', { observe: 'response' })
+      .subscribe(
+      resp => {
+        this.httpSessionID = resp.headers.get('xds-agent-sid');
+
+        const re = originUrl.match(/http[s]?:\/\/([^\/]*)[\/]?/);
+        if (re === null || re.length < 2) {
+          console.error('ERROR: cannot determine Websocket url');
+        } else {
+          this.wsUrl = 'ws://' + re[1];
+          this._handleIoSocket();
+          this._RegisterEvents();
+        }
+      },
+      err => {
+        /* tslint:disable:no-console */
+        console.error('ERROR while retrieving session id:', err);
+      });
   }
 
   private _NotifyXdsAgentState(sts: boolean) {
@@ -182,6 +198,8 @@ export class XDSAgentService {
       console.error('WS error:', err);
     });
 
+    // XDS Events decoding
+
     this.socket.on('make:output', data => {
       this.CmdOutput$.next(Object.assign({}, <ICmdOutput>data));
     });
@@ -198,8 +216,6 @@ export class XDSAgentService {
       this.CmdExit$.next(Object.assign({}, <ICmdExit>data));
     });
 
-    // Events
-    // (project-add and project-delete events are managed by project.service)
     this.socket.on('event:server-config', ev => {
       if (ev && ev.data) {
         const cfg: IXDServerCfg = ev.data;
@@ -212,19 +228,52 @@ export class XDSAgentService {
       }
     });
 
+    this.socket.on('event:project-add', (ev) => {
+      if (ev && ev.data && ev.data.id) {
+        this.projectAdd$.next(Object.assign({}, ev.data));
+        if (ev.sessionID !== this.httpSessionID && ev.data.label) {
+          this.alert.info('Project "' + ev.data.label + '" has been added by another tool.');
+        }
+      } else if (isDevMode) {
+        /* tslint:disable:no-console */
+        console.log('Warning: received event:project-add with unknown data: ev=', ev);
+      }
+    });
+
+    this.socket.on('event:project-delete', (ev) => {
+      if (ev && ev.data && ev.data.id) {
+        this.projectDel$.next(Object.assign({}, ev.data));
+        if (ev.sessionID !== this.httpSessionID && ev.data.label) {
+          this.alert.info('Project "' + ev.data.label + '" has been deleted by another tool.');
+        }
+      } else if (isDevMode) {
+        console.log('Warning: received event:project-delete with unknown data: ev=', ev);
+      }
+    });
+
     this.socket.on('event:project-state-change', ev => {
       if (ev && ev.data) {
-        this.ProjectState$.next(Object.assign({}, ev.data));
+        this.projectChange$.next(Object.assign({}, ev.data));
+      } else if (isDevMode) {
+        console.log('Warning: received event:project-state-change with unknown data: ev=', ev);
       }
     });
 
   }
 
   /**
-  ** Events
+  ** Events registration
   ***/
-  addEventListener(ev: string, fn: Function): SocketIOClient.Emitter {
-    return this.socket.addEventListener(ev, fn);
+  onProjectAdd(): Observable<IXDSProjectConfig> {
+    return this.projectAdd$.asObservable();
+  }
+
+  onProjectDelete(): Observable<IXDSProjectConfig> {
+    return this.projectDel$.asObservable();
+  }
+
+  onProjectChange(): Observable<IXDSProjectConfig> {
+    return this.projectChange$.asObservable();
   }
 
   /**
@@ -307,6 +356,10 @@ export class XDSAgentService {
     return this._delete('/projects/' + id);
   }
 
+  updateProject(cfg: IXDSProjectConfig): Observable<IXDSProjectConfig> {
+    return this._put('/projects/' + cfg.id, cfg);
+  }
+
   syncProject(id: string): Observable<string> {
     return this._post('/projects/sync/' + id, {});
   }
@@ -337,8 +390,8 @@ export class XDSAgentService {
       res => { },
       error => {
         this.alert.error('ERROR while registering to all events: ' + error);
-      }
-      );
+      },
+    );
   }
 
   private _getServer(ID: string): IXDServerCfg {
@@ -371,6 +424,12 @@ export class XDSAgentService {
         return this._decodeError(error);
       });
   }
+  private _put(url: string, body: any): Observable<any> {
+    return this.http.put(this.baseUrl + url, JSON.stringify(body), this._attachAuthHeaders())
+      .catch((error) => {
+        return this._decodeError(error);
+      });
+  }
   private _delete(url: string): Observable<any> {
     return this.http.delete(this.baseUrl + url, this._attachAuthHeaders())
       .catch(this._decodeError);
@@ -391,7 +450,10 @@ export class XDSAgentService {
     } else {
       e = err.message ? err.message : err.toString();
     }
-    console.log('xdsagent.service - ERROR: ', e);
+    /* tslint:disable:no-console */
+    if (isDevMode) {
+      console.log('xdsagent.service - ERROR: ', e);
+    }
     return Observable.throw(e);
   }
 }

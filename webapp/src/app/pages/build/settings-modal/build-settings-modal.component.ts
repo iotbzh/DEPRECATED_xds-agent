@@ -14,17 +14,17 @@ import { XDSConfigService } from '../../../@core-xds/services/xds-config.service
 
 
 @Component({
-  selector: 'xds-project-add-modal',
-  templateUrl: 'project-add-modal.component.html',
-  styleUrls: ['project-add-modal.component.scss'],
+  selector: 'xds-build-settings-modal',
+  templateUrl: 'build-settings-modal.component.html',
+  styleUrls: ['build-settings-modal.component.scss'],
 })
-export class ProjectAddModalComponent implements OnInit {
+export class BuildSettingsModalComponent implements OnInit {
   // @Input('server-id') serverID: string;
   private serverID: string;
 
   cancelAction = false;
   userEditedLabel = false;
-  projectTypes = Object.assign([], ProjectTypes);
+  projectTypes = ProjectTypes;
 
   addProjectForm: FormGroup;
   typeCtrl: FormControl;

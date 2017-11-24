@@ -125,6 +125,14 @@ func (s *Sessions) Get(c *gin.Context) *ClientSession {
 	return nil
 }
 
+// GetID returns the session or an empty string
+func (s *Sessions) GetID(c *gin.Context) string {
+	if sess := s.Get(c); sess != nil {
+		return sess.ID
+	}
+	return ""
+}
+
 // IOSocketGet Get socketio definition from sid
 func (s *Sessions) IOSocketGet(sid string) *socketio.Socket {
 	s.mutex.Lock()

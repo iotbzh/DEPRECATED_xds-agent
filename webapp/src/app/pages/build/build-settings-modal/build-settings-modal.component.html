@@ -1,0 +1,60 @@
+<div class="modal-header">
+  <span>Build Settings</span>
+  <button class="close" aria-label="Close" (click)="closeModal()">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+
+<div class="modal-body row">
+  <div class="col-12">
+    <form [formGroup]="settingsProjectForm" (ngSubmit)="onSubmit()">
+
+      <div class="form-group row">
+        <label for="clean-cmd" class="col-sm-3 col-form-label">Clean command</label>
+        <div class="col-sm-9">
+          <input type="text" id="inputCleanCmd" class="form-control" formControlName="cmdClean">
+        </div>
+      </div>
+
+      <div class="form-group row">
+        <label for="prebuild-cmd" class="col-sm-3 col-form-label">Pre-Build command</label>
+        <div class="col-sm-9">
+          <input type="text" id="inputPrebuildCmd" class="form-control" formControlName="cmdPrebuild">
+        </div>
+      </div>
+
+      <div class="form-group row">
+        <label for="build-cmd" class="col-sm-3 col-form-label">Build command</label>
+        <div class="col-sm-9">
+          <input type="text" id="inputBuildCmd" class="form-control" formControlName="cmdBuild">
+        </div>
+      </div>
+
+      <div class="form-group row">
+        <label for="populate-cmd" class="col-sm-3 col-form-label">Populate command</label>
+        <div class="col-sm-9">
+          <input type="text" id="inputPopulateCmd" class="form-control" formControlName="cmdPopulate">
+        </div>
+      </div>
+
+      <div class="form-group row">
+        <label for="envvars-cmd" class="col-sm-3 col-form-label">Env variables</label>
+        <div class="col-sm-9">
+          <input type="text" id="inputEnvVars" class="form-control" formControlName="envVars">
+        </div>
+      </div>
+
+      <div class="offset-sm-9 col-sm-9">
+        <button class="btn btn-sm btn-hero-secondary" (click)="closeAction=false; resetDefault()">Reset settings</button>
+      </div>
+    </form>
+  </div>
+</div>
+<div class="modal-footer form-group">
+  <div class="col-12">
+    <div class="offset-sm-4 col-sm-6">
+      <button class="btn btn-md btn-secondary" (click)="closeAction=false; closeModal()"> Cancel </button>
+      <button class="btn btn-md btn-primary" [disabled]="!settingsProjectForm.valid" (click)="closeAction=true; onSubmit()">Update</button>
+    </div>
+  </div>
+</div>

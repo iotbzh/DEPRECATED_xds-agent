@@ -39,7 +39,7 @@ func (s *APIService) addProject(c *gin.Context) {
 
 	s.Log.Debugln("Add project config: ", cfgArg)
 
-	newFld, err := s.projects.Add(cfgArg)
+	newFld, err := s.projects.Add(cfgArg, s.sessions.GetID(c))
 	if err != nil {
 		common.APIError(c, err.Error())
 		return
@@ -77,10 +77,34 @@ func (s *APIService) delProject(c *gin.Context) {
 
 	s.Log.Debugln("Delete project id ", id)
 
-	delEntry, err := s.projects.Delete(id)
+	delEntry, err := s.projects.Delete(id, s.sessions.GetID(c))
 	if err != nil {
 		common.APIError(c, err.Error())
 		return
 	}
 	c.JSON(http.StatusOK, delEntry)
+}
+
+// updateProject Update some field of a specific project
+func (s *APIService) updateProject(c *gin.Context) {
+	id, err := s.projects.ResolveID(c.Param("id"))
+	if err != nil {
+		common.APIError(c, err.Error())
+		return
+	}
+
+	var cfgArg apiv1.ProjectConfig
+	if c.BindJSON(&cfgArg) != nil {
+		common.APIError(c, "Invalid arguments")
+		return
+	}
+
+	s.Log.Debugln("Update project id ", id)
+
+	upPrj, err := s.projects.Update(id, cfgArg, s.sessions.GetID(c))
+	if err != nil {
+		common.APIError(c, err.Error())
+		return
+	}
+	c.JSON(http.StatusOK, upPrj)
 }

@@ -64,9 +64,12 @@ type XdsBuilderConfig struct {
 type XdsFolderType string
 
 const (
-	XdsTypePathMap   = "PathMap"
+	// XdsTypePathMap Path Mapping folder type
+	XdsTypePathMap = "PathMap"
+	// XdsTypeCloudSync Cloud synchronization (AKA syncthing) folder type
 	XdsTypeCloudSync = "CloudSync"
-	XdsTypeCifsSmb   = "CIFS"
+	// XdsTypeCifsSmb CIFS (AKA samba) folder type
+	XdsTypeCifsSmb = "CIFS"
 )
 
 // XdsFolderConfig XdsServer folder config
@@ -78,6 +81,8 @@ type XdsFolderConfig struct {
 	Status     string        `json:"status"`
 	IsInSync   bool          `json:"isInSync"`
 	DefaultSdk string        `json:"defaultSdk"`
+	ClientData string        `json:"clientData"` // free form field that can used by client
+
 	// Specific data depending on which Type is used
 	DataPathMap   XdsPathMapConfig   `json:"dataPathMap,omitempty"`
 	DataCloudSync XdsCloudSyncConfig `json:"dataCloudSync,omitempty"`
@@ -112,7 +117,7 @@ type XdsEventFolderChange struct {
 	Folder XdsFolderConfig `json:"folder"`
 }
 
-// Event emitter callback
+// EventCB Event emitter callback
 type EventCB func(privData interface{}, evtData interface{}) error
 
 // caller Used to chain event listeners
@@ -241,6 +246,11 @@ func (xs *XdsServer) FolderSync(id string) error {
 	return xs.client.HTTPPost("/folders/sync/"+id, "")
 }
 
+// FolderUpdate Send PUT request to update a folder
+func (xs *XdsServer) FolderUpdate(fld *XdsFolderConfig, resFld *XdsFolderConfig) error {
+	return xs.client.Put("/folders/"+fld.ID, fld, resFld)
+}
+
 // SetAPIRouterGroup .
 func (xs *XdsServer) SetAPIRouterGroup(r *gin.RouterGroup) {
 	xs.apiRouter = r
@@ -334,7 +344,7 @@ func (xs *XdsServer) EventOn(evName string, privData interface{}, f EventCB) (uu
 
 		// FIXME: use generic type: data interface{} instead of data XdsEventFolderChange
 		var err error
-		if evName == "event:FolderStateChanged" {
+		if evName == "event:folder-state-change" {
 			err = xs.ioSock.On(evn, func(data XdsEventFolderChange) error {
 				xs.sockEventsLock.Lock()
 				sEvts := make([]*caller, len(xs.sockEvents[evn]))
@@ -400,6 +410,7 @@ func (xs *XdsServer) ProjectToFolder(pPrj apiv1.ProjectConfig) *XdsFolderConfig 
 	if pPrj.Type == XdsTypeCloudSync {
 		stID, _ = xs.SThg.IDGet()
 	}
+	// TODO: limit ClientData size and gzip it (see https://golang.org/pkg/compress/gzip/)
 	fPrj := XdsFolderConfig{
 		ID:         pPrj.ID,
 		Label:      pPrj.Label,
@@ -408,6 +419,7 @@ func (xs *XdsServer) ProjectToFolder(pPrj apiv1.ProjectConfig) *XdsFolderConfig 
 		Status:     pPrj.Status,
 		IsInSync:   pPrj.IsInSync,
 		DefaultSdk: pPrj.DefaultSdk,
+		ClientData: pPrj.ClientData,
 		DataPathMap: XdsPathMapConfig{
 			ServerPath: pPrj.ServerPath,
 		},
@@ -457,6 +469,7 @@ func (xs *XdsServer) FolderToProject(fPrj XdsFolderConfig) apiv1.ProjectConfig {
 		Status:     sts,
 		IsInSync:   inSync,
 		DefaultSdk: fPrj.DefaultSdk,
+		ClientData: fPrj.ClientData,
 	}
 	return pPrj
 }
@@ -628,7 +641,7 @@ func (xs *XdsServer) _NotifyState() {
 		ConnRetry:  xs.ConnRetry,
 		Connected:  xs.Connected,
 	}
-	if err := xs.events.Emit(apiv1.EVTServerConfig, evSts); err != nil {
+	if err := xs.events.Emit(apiv1.EVTServerConfig, evSts, ""); err != nil {
 		xs.Log.Warningf("Cannot notify XdsServer state change: %v", err)
 	}
 }

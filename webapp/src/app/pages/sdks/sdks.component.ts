@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-//import { SdkAddModalComponent } from './sdk-add-modal/sdk-add-modal.component';
+// import { SdkAddModalComponent } from './sdk-add-modal/sdk-add-modal.component';
 
 import { SdkService, ISdk } from '../../@core-xds/services/sdk.service';
 

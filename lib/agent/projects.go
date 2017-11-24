@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/franciscocpg/reflectme"
 	"github.com/iotbzh/xds-agent/lib/apiv1"
 	"github.com/iotbzh/xds-agent/lib/syncthing"
 	"github.com/syncthing/syncthing/lib/sync"
@@ -119,14 +120,14 @@ func (p *Projects) GetProjectArrUnsafe() []apiv1.ProjectConfig {
 }
 
 // Add adds a new folder
-func (p *Projects) Add(newF apiv1.ProjectConfig) (*apiv1.ProjectConfig, error) {
+func (p *Projects) Add(newF apiv1.ProjectConfig, fromSid string) (*apiv1.ProjectConfig, error) {
 	prj, err := p.createUpdate(newF, true, false)
 	if err != nil {
 		return prj, err
 	}
 
 	// Notify client with event
-	if err := p.events.Emit(apiv1.EVTProjectAdd, *prj); err != nil {
+	if err := p.events.Emit(apiv1.EVTProjectAdd, *prj, fromSid); err != nil {
 		p.Log.Warningf("Cannot notify project deletion: %v", err)
 	}
 
@@ -190,7 +191,7 @@ func (p *Projects) createUpdate(newF apiv1.ProjectConfig, create bool, initial b
 		}
 	} else {
 		// Just update project config
-		if newPrj, err = fld.UpdateProject(newF); err != nil {
+		if newPrj, err = fld.Setup(newF); err != nil {
 			newF.Status = apiv1.StatusErrorConfig
 			log.Printf("ERROR Updating project: %v\n", err)
 			return newPrj, err
@@ -217,7 +218,7 @@ func (p *Projects) createUpdate(newF apiv1.ProjectConfig, create bool, initial b
 }
 
 // Delete deletes a specific folder
-func (p *Projects) Delete(id string) (apiv1.ProjectConfig, error) {
+func (p *Projects) Delete(id, fromSid string) (apiv1.ProjectConfig, error) {
 	var err error
 
 	pjMutex.Lock()
@@ -238,7 +239,7 @@ func (p *Projects) Delete(id string) (apiv1.ProjectConfig, error) {
 	delete(p.projects, id)
 
 	// Notify client with event
-	if err := p.events.Emit(apiv1.EVTProjectDelete, *prj); err != nil {
+	if err := p.events.Emit(apiv1.EVTProjectDelete, *prj, fromSid); err != nil {
 		p.Log.Warningf("Cannot notify project deletion: %v", err)
 	}
 
@@ -261,4 +262,51 @@ func (p *Projects) IsProjectInSync(id string) (bool, error) {
 		return false, fmt.Errorf("Unknown id")
 	}
 	return (*fc).IsInSync()
+}
+
+// Update Update some field of a project
+func (p *Projects) Update(id string, prj apiv1.ProjectConfig, fromSid string) (*apiv1.ProjectConfig, error) {
+
+	pjMutex.Lock()
+	defer pjMutex.Unlock()
+
+	fc, exist := p.projects[id]
+	if !exist {
+		return nil, fmt.Errorf("Unknown id")
+	}
+
+	// Copy current in a new object to change nothing in case of an error rises
+	newFld := apiv1.ProjectConfig{}
+	reflectme.Copy((*fc).GetProject(), &newFld)
+
+	// Only update some fields
+	dirty := false
+	for _, fieldName := range apiv1.ProjectConfigUpdatableFields {
+		valNew, err := reflectme.GetField(prj, fieldName)
+		if err == nil {
+			valCur, err := reflectme.GetField(newFld, fieldName)
+			if err == nil && valNew != valCur {
+				err = reflectme.SetField(&newFld, fieldName, valNew)
+				if err != nil {
+					return nil, err
+				}
+				dirty = true
+			}
+		}
+	}
+
+	if !dirty {
+		return &newFld, nil
+	}
+
+	upPrj, err := (*fc).Update(newFld)
+	if err != nil {
+		return nil, err
+	}
+
+	// Notify client with event
+	if err := p.events.Emit(apiv1.EVTProjectChange, *upPrj, fromSid); err != nil {
+		p.Log.Warningf("Cannot notify project change: %v", err)
+	}
+	return upPrj, err
 }

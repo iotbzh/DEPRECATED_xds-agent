@@ -29,4 +29,10 @@ type ProjectConfig struct {
 	Status     string      `json:"status"`
 	IsInSync   bool        `json:"isInSync"`
 	DefaultSdk string      `json:"defaultSdk"`
+	ClientData string      `json:"clientData"` // free form field that can used by client
+}
+
+// ProjectConfigUpdatableFields List fields that can be updated using Update function
+var ProjectConfigUpdatableFields = []string{
+	"Label", "DefaultSdk", "ClientData",
 }

@@ -10,6 +10,6 @@ import { ConfigRoutingModule, routedConfig } from './config-routing.module';
   ],
   declarations: [
     ...routedConfig,
-  ]
+  ],
 })
 export class ConfigModule { }

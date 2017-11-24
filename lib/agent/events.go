@@ -71,7 +71,7 @@ func (e *Events) UnRegister(evName, sessionID string) error {
 }
 
 // Emit Used to manually emit an event
-func (e *Events) Emit(evName string, data interface{}) error {
+func (e *Events) Emit(evName string, data interface{},fromSid string) error {
 	var firstErr error
 
 	if _, ok := e.eventsMap[evName]; !ok {
@@ -93,9 +93,10 @@ func (e *Events) Emit(evName string, data interface{}) error {
 			continue
 		}
 		msg := apiv1.EventMsg{
-			Time: time.Now().String(),
-			Type: evName,
-			Data: data,
+			Time:          time.Now().String(),
+			FromSessionID: fromSid,
+			Type:          evName,
+			Data:          data,
 		}
 		e.Log.Debugf("Emit Event %s: %v", evName, sid)
 		if err := (*so).Emit(evName, msg); err != nil {

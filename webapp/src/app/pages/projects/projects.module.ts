@@ -17,7 +17,7 @@ import { ProjectAddModalComponent } from './project-add-modal/project-add-modal.
     ProjectReadableTypePipe,
   ],
   entryComponents: [
-    ProjectAddModalComponent
+    ProjectAddModalComponent,
   ],
 })
 export class ProjectsModule { }

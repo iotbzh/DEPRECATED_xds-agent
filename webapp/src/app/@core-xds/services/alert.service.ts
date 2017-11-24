@@ -31,7 +31,7 @@ export class AlertService {
 
   public error(msg: string, dismissTime?: number) {
     this.add({
-      type: 'error', msg: msg, dismissible: true, dismissTimeout: dismissTime
+      type: 'error', msg: msg, dismissible: true, dismissTimeout: dismissTime,
     });
   }
 

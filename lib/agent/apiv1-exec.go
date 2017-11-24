@@ -5,14 +5,12 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/franciscocpg/reflectme"
 	"github.com/gin-gonic/gin"
 	"github.com/iotbzh/xds-agent/lib/apiv1"
 	common "github.com/iotbzh/xds-common/golib"
 	uuid "github.com/satori/go.uuid"
 )
-
-var execCmdID = 1
-var fwdFuncID []uuid.UUID
 
 // ExecCmd executes remotely a command
 func (s *APIService) execCmd(c *gin.Context) {
@@ -81,6 +79,7 @@ func (s *APIService) _execRequest(cmd string, c *gin.Context) {
 		apiv1.ExecInferiorOutEvent,
 	}
 
+	var fwdFuncID []uuid.UUID
 	for _, evName := range evtList {
 		evN := evName
 		fwdFunc := func(pData interface{}, evData interface{}) error {
@@ -91,6 +90,9 @@ func (s *APIService) _execRequest(cmd string, c *gin.Context) {
 				s.Log.Infof("%s not emitted: WS closed (sid:%s)", evN, sid)
 				return nil
 			}
+
+			// Add sessionID to event Data
+			reflectme.SetField(evData, "sessionID", sid)
 
 			// Forward event to Client/Dashboard
 			(*so).Emit(evN, evData)
@@ -110,14 +112,16 @@ func (s *APIService) _execRequest(cmd string, c *gin.Context) {
 		evN := apiv1.ExecExitEvent
 		sid := pData.(string)
 
+		// Add sessionID to event Data
+		reflectme.SetField(evData, "sessionID", sid)
+
 		// IO socket can be nil when disconnected
 		so := s.sessions.IOSocketGet(sid)
-		if so == nil {
+		if so != nil {
+			(*so).Emit(evN, evData)
+		} else {
 			s.Log.Infof("%s not emitted: WS closed (sid:%s)", evN, sid)
-			return nil
 		}
-
-		(*so).Emit(evN, evData)
 
 		// cleanup listener
 		for i, evName := range evtList {

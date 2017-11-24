@@ -69,7 +69,7 @@ func (p *PathMap) Add(cfg apiv1.ProjectConfig) (*apiv1.ProjectConfig, error) {
 	// Send request to create folder on XDS server side
 	err = p.server.FolderAdd(fld, p.folder)
 	if err != nil {
-		return nil, fmt.Errorf("Folders mapping verification failure.\n%v", err)
+		return nil, err
 	}
 
 	// 2nd part of sanity checker
@@ -98,14 +98,28 @@ func (p *PathMap) GetProject() *apiv1.ProjectConfig {
 	return &prj
 }
 
-// UpdateProject Set project config
-func (p *PathMap) UpdateProject(prj apiv1.ProjectConfig) (*apiv1.ProjectConfig, error) {
+// Setup Setup local project config
+func (p *PathMap) Setup(prj apiv1.ProjectConfig) (*apiv1.ProjectConfig, error) {
 	p.folder = p.server.ProjectToFolder(prj)
 	np := p.GetProject()
-	if err := p.events.Emit(apiv1.EVTProjectChange, np); err != nil {
+	if err := p.events.Emit(apiv1.EVTProjectChange, np, ""); err != nil {
 		return np, err
 	}
 	return np, nil
+}
+
+// Update Update some field of a project
+func (p *PathMap) Update(prj apiv1.ProjectConfig) (*apiv1.ProjectConfig, error) {
+	if p.folder.ID != prj.ID {
+		return nil, fmt.Errorf("Invalid id")
+	}
+
+	err := p.server.FolderUpdate(p.server.ProjectToFolder(prj), p.folder)
+	if err != nil {
+		return nil, err
+	}
+
+	return p.GetProject(), nil
 }
 
 // GetServer Get the XdsServer that holds this project

@@ -8,7 +8,7 @@ import (
 	"github.com/iotbzh/xds-agent/lib/xdsconfig"
 )
 
-const apiBaseUrl = "/api/v1"
+const apiBaseURL = "/api/v1"
 
 // APIService .
 type APIService struct {
@@ -21,7 +21,7 @@ type APIService struct {
 func NewAPIV1(ctx *Context) *APIService {
 	s := &APIService{
 		Context:     ctx,
-		apiRouter:   ctx.webServer.router.Group(apiBaseUrl),
+		apiRouter:   ctx.webServer.router.Group(apiBaseURL),
 		serverIndex: 0,
 	}
 
@@ -34,6 +34,7 @@ func NewAPIV1(ctx *Context) *APIService {
 
 	s.apiRouter.GET("/projects", s.getProjects)
 	s.apiRouter.GET("/projects/:id", s.getProject)
+	s.apiRouter.PUT("/projects/:id", s.updateProject)
 	s.apiRouter.POST("/projects", s.addProject)
 	s.apiRouter.POST("/projects/sync/:id", s.syncProject)
 	s.apiRouter.DELETE("/projects/:id", s.delProject)
@@ -80,7 +81,7 @@ func (s *APIService) AddXdsServer(cfg xdsconfig.XDSServerConf) (*XdsServer, erro
 
 		// Create a new server object
 		if cfg.APIBaseURL == "" {
-			cfg.APIBaseURL = apiBaseUrl
+			cfg.APIBaseURL = apiBaseURL
 		}
 		if cfg.APIPartialURL == "" {
 			cfg.APIPartialURL = "/server/" + strconv.Itoa(s.serverIndex)

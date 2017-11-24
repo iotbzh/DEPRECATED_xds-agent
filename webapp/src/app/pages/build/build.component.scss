@@ -23,6 +23,12 @@
   }
 }
 
+.right {
+  display: flex;
+  flex-direction: row-reverse;
+  padding-right: 30px;
+}
+
 nb-action {
   i {
     font-size: 2rem;

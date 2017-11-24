@@ -25,3 +25,5 @@ import:
   version: ^0.1.0
   subpackages:
   - golib/common
+- package: github.com/franciscocpg/reflectme
+  version: ^0.1.9

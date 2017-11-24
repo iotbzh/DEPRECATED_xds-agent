@@ -20,7 +20,7 @@
       </div>
     </nb-card-body>
   </div>
-  <div class="col-md-12 col-lg-12 col-xxxl-6" *ngFor="let sdk of (sdks$ | async)">
+  <div class="col-md-6 col-lg-6" *ngFor="let sdk of (sdks$ | async)">
     <xds-sdk-card [sdk]="sdk"></xds-sdk-card>
   </div>
 </div>

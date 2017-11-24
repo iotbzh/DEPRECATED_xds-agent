@@ -11,43 +11,48 @@
       </nb-actions>
     </nb-card-body>
   </div>
-  <div class="col-md-12 col-lg-12 col-xxxl-6">
+  <div class="col-md-12 col-lg-12">
     <nb-card size="xlarge">
       <nb-tabset fullWidth>
 
-        <nb-tab tabTitle="Build">
+        <nb-tab tabTitle="Build" style="overflow: hidden;">
 
-          <div class="row" style="margin-top:1em;">
-            <!-- FIXME SEB
-            <button class="btn pull-right " (click)="reset() ">
-              <span class="fa fa-eraser fa-size-x2"></span>
-            </button>
-          -->
-            <div class="col-md-12 text-center ">
-              <textarea rows="20" class="textarea-scroll" #scrollOutput>{{ cmdOutput }}</textarea>
-            </div>
+          <div class="offset-md-10 col-md-2 right">
+            <i class="control-icon fa fa-eraser" (click)="resetOutput()">
+            </i>
+          </div>
+          <div class="col-md-12 text-center ">
+            <textarea rows="20" class="textarea-scroll" #scrollOutput>{{ cmdOutput }}</textarea>
           </div>
 
           <nb-card-body>
-              <nb-actions size="medium" fullWidth>
-                <nb-action (click)="clean()">
-                  <i class="fa fa-eraser"></i>
-                  <span>Clean</span>
-                </nb-action>
-                <nb-action (click)="preBuild()">
-                  <i class="nb-list"></i>
-                  <span>Pre-Build</span>
-                </nb-action>
-                <nb-action (click)="build()">
-                  <i class="fa fa-wrench"></i>
-                  <span>Build</span>
-                </nb-action>
-                <nb-action (click)="populate()">
-                  <i class="fa fa-send"></i>
-                  <span>Populate</span>
-                </nb-action>
-              </nb-actions>
-            </nb-card-body>
+            <nb-actions size="medium" fullWidth>
+              <nb-action (click)="settingsShow()">
+                <i class="fa fa-cog"></i>
+                <span>Settings</span>
+              </nb-action>
+
+              <nb-action>
+              </nb-action>
+
+              <nb-action (click)="clean()">
+                <i class="fa fa-eraser"></i>
+                <span>Clean</span>
+              </nb-action>
+              <nb-action (click)="preBuild()">
+                <i class="nb-list"></i>
+                <span>Pre-Build</span>
+              </nb-action>
+              <nb-action (click)="build()">
+                <i class="fa fa-wrench"></i>
+                <span>Build</span>
+              </nb-action>
+              <nb-action (click)="populate()">
+                <i class="fa fa-send"></i>
+                <span>Populate</span>
+              </nb-action>
+            </nb-actions>
+          </nb-card-body>
 
         </nb-tab>
 

@@ -17,7 +17,7 @@ export class SdkCardComponent {
 
   constructor(
     private alert: AlertService,
-    private sdkSvr: SdkService
+    private sdkSvr: SdkService,
   ) {
   }
 
@@ -28,7 +28,7 @@ export class SdkCardComponent {
   delete(sdk: ISdk) {
     this.sdkSvr.delete(sdk).subscribe(
       res => { },
-      err => this.alert.error('ERROR delete: ' + err)
+      err => this.alert.error('ERROR delete: ' + err),
     );
   }
 }

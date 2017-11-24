@@ -47,7 +47,7 @@ export class XDSConfigService {
   }
 
   getCurServer(): IXDServerCfg {
-    return Object.assign({}, this._curServer);
+    return this._curServer;
   }
 
   setCurServer(svr: IXDServerCfg): Observable<IXDServerCfg> {
@@ -58,7 +58,7 @@ export class XDSConfigService {
         .map(cfg => this._updateCurServer())
         .catch(err => {
           this._curServer.connected = false;
-          this.curServer$.next(Object.assign({}, this._curServer));
+          this.curServer$.next(this._curServer);
           return Observable.throw(err);
         });
     } else {
@@ -66,7 +66,7 @@ export class XDSConfigService {
         return this.xdsAgentSvr.setServerRetry(curSvr.id, svr.connRetry)
           .map(cfg => this._updateCurServer())
           .catch(err => {
-            this.curServer$.next(Object.assign({}, this._curServer));
+            this.curServer$.next(this._curServer);
             return Observable.throw(err);
           });
       }
@@ -76,7 +76,7 @@ export class XDSConfigService {
 
   private _updateCurServer() {
     this._curServer = this._getCurServer();
-    this.curServer$.next(Object.assign({}, this._curServer));
+    this.curServer$.next(this._curServer);
   }
 
   private _getCurServer(url?: string): IXDServerCfg {

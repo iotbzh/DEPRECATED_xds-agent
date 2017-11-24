@@ -3,7 +3,7 @@ import { ThemeModule } from '../../@theme/theme.module';
 
 import { SdksComponent } from './sdks.component';
 import { SdkCardComponent } from './sdk-card/sdk-card.component';
-//import { SdkAddModalComponent } from './sdk-add-modal/sdk-add-modal.component';
+// import { SdkAddModalComponent } from './sdk-add-modal/sdk-add-modal.component';
 
 
 @NgModule({
@@ -13,10 +13,10 @@ import { SdkCardComponent } from './sdk-card/sdk-card.component';
   declarations: [
     SdksComponent,
     SdkCardComponent,
-    //SdkAddModalComponent,
+    // SdkAddModalComponent,
   ],
   entryComponents: [
-    //SdkAddModalComponent
+    // SdkAddModalComponent,
   ],
 })
 export class SdksModule { }

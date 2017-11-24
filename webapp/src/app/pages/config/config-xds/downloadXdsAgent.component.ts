@@ -2,6 +2,8 @@ import { Component } from '@angular/core';
 
 @Component({
     selector: 'xds-dwnl-agent',
+    template: ``,
+    /* FIXME SEB: to be reworked
     template: `
         <template #popTemplate>
             <h3>Install xds-agent:</h3>
@@ -25,7 +27,8 @@ import { Component } from '@angular/core';
         .fa-size-x2 {
             font-size: 20px;
         }
-    `]
+    `],
+    */
 })
 
 export class DwnlAgentComponent {

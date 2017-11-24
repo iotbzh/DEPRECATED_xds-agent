@@ -1,4 +1,4 @@
-import { Injectable, SecurityContext } from '@angular/core';
+import { Injectable, SecurityContext, isDevMode } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 
@@ -15,12 +15,12 @@ export type ProjectTypeEnum = '' | 'PathMap' | 'CloudSync';
 export const ProjectType = {
   UNSET: '',
   NATIVE_PATHMAP: 'PathMap',
-  SYNCTHING: 'CloudSync'
+  SYNCTHING: 'CloudSync',
 };
 
 export const ProjectTypes = [
   { value: ProjectType.NATIVE_PATHMAP, display: 'Path mapping' },
-  { value: ProjectType.SYNCTHING, display: 'Cloud Sync' }
+  { value: ProjectType.SYNCTHING, display: 'Cloud Sync' },
 ];
 
 export const ProjectStatus = {
@@ -28,9 +28,18 @@ export const ProjectStatus = {
   Disable: 'Disable',
   Enable: 'Enable',
   Pause: 'Pause',
-  Syncing: 'Syncing'
+  Syncing: 'Syncing',
 };
 
+export interface IUISettings {
+  subpath: string;
+  cmdClean: string;
+  cmdPrebuild: string;
+  cmdBuild: string;
+  cmdPopulate: string;
+  cmdArgs: string[];
+  envVars: string[];
+}
 export interface IProject {
   id?: string;
   serverId: string;
@@ -45,95 +54,84 @@ export interface IProject {
   isExpanded?: boolean;
   visible?: boolean;
   defaultSdkID?: string;
+  uiSettings?: IUISettings;
 }
+
+const defaultUISettings: IUISettings = {
+  subpath: '',
+  cmdClean: 'rm -rf build && echo Done',
+  cmdPrebuild: 'mkdir -p build && cd build && cmake ..',
+  cmdBuild: 'cd build && make',
+  cmdPopulate: 'cd build && make remote-target-populate',
+  cmdArgs: [],
+  envVars: [],
+};
 
 @Injectable()
 export class ProjectService {
-  public Projects$: Observable<IProject[]>;
+  projects$: Observable<IProject[]>;
+  curProject$: Observable<IProject>;
 
   private _prjsList: IProject[] = [];
-  private current: IProject;
   private prjsSubject = <BehaviorSubject<IProject[]>>new BehaviorSubject(this._prjsList);
+  private _current: IProject;
+  private curPrjSubject = <BehaviorSubject<IProject>>new BehaviorSubject(this._current);
 
   constructor(private xdsSvr: XDSAgentService) {
-    this.current = null;
-    this.Projects$ = this.prjsSubject.asObservable();
+    this._current = null;
+    this.projects$ = this.prjsSubject.asObservable();
+    this.curProject$ = this.curPrjSubject.asObservable();
 
+    // Load initial projects list
     this.xdsSvr.getProjects().subscribe((projects) => {
       this._prjsList = [];
       projects.forEach(p => {
         this._addProject(p, true);
       });
-      this.prjsSubject.next(Object.assign([], this._prjsList));
+
+      // TODO: get previous val from xds-config service / cookie
+      if (this._prjsList.length > 0) {
+        this._current = this._prjsList[0];
+        this.curPrjSubject.next(this._current);
+      }
+
+      this.prjsSubject.next(this._prjsList);
     });
 
-    // Update Project data
-    this.xdsSvr.ProjectState$.subscribe(prj => {
-      const i = this._getProjectIdx(prj.id);
-      if (i >= 0) {
-        // XXX for now, only isInSync and status may change
-        this._prjsList[i].isInSync = prj.isInSync;
-        this._prjsList[i].status = prj.status;
-        this._prjsList[i].isUsable = this._isUsableProject(prj);
-        this.prjsSubject.next(Object.assign([], this._prjsList));
-      }
-    });
-
-    // Add listener on create and delete project events
-    this.xdsSvr.addEventListener('event:project-add', (ev) => {
-      if (ev && ev.data && ev.data.id) {
-        this._addProject(ev.data);
-      } else {
-        console.log('Warning: received events with unknown data: ev=', ev);
-      }
-    });
-    this.xdsSvr.addEventListener('event:project-delete', (ev) => {
-      if (ev && ev.data && ev.data.id) {
-        const idx = this._prjsList.findIndex(item => item.id === ev.data.id);
-        if (idx === -1) {
-          console.log('Warning: received events on unknown project id: ev=', ev);
-          return;
-        }
-        this._prjsList.splice(idx, 1);
-        this.prjsSubject.next(Object.assign([], this._prjsList));
-      } else {
-        console.log('Warning: received events with unknown data: ev=', ev);
-      }
-    });
-
+    // Add listener on projects creation, deletion and change events
+    this.xdsSvr.onProjectAdd().subscribe(prj => this._addProject(prj));
+    this.xdsSvr.onProjectDelete().subscribe(prj => this._delProject(prj));
+    this.xdsSvr.onProjectChange().subscribe(prj => this._updateProject(prj));
   }
 
-  public setCurrent(s: IProject) {
-    this.current = s;
-  }
-
-  public getCurrent(): IProject {
-    return this.current;
-  }
-
-  public getCurrentId(): string {
-    if (this.current && this.current.id) {
-      return this.current.id;
+  setCurrent(p: IProject): IProject | undefined {
+    if (!p) {
+      this._current = null;
+      return undefined;
     }
-    return '';
+    return this.setCurrentById(p.id);
   }
 
-  Add(prj: IProject): Observable<IProject> {
-    const xdsPrj: IXDSProjectConfig = {
-      id: '',
-      serverId: prj.serverId,
-      label: prj.label || '',
-      clientPath: prj.pathClient.trim(),
-      serverPath: prj.pathServer,
-      type: prj.type,
-      defaultSdkID: prj.defaultSdkID,
-    };
+  setCurrentById(id: string): IProject | undefined {
+    const p = this._prjsList.find(item => item.id === id);
+    if (p) {
+      this._current = p;
+      this.curPrjSubject.next(this._current);
+    }
+    return this._current;
+  }
+
+  getCurrent(): IProject {
+    return this._current;
+  }
+
+  add(prj: IProject): Observable<IProject> {
     // Send config to XDS server
-    return this.xdsSvr.addProject(xdsPrj)
+    return this.xdsSvr.addProject(this._convToIXdsProject(prj))
       .map(xp => this._convToIProject(xp));
   }
 
-  Delete(prj: IProject): Observable<IProject> {
+  delete(prj: IProject): Observable<IProject> {
     const idx = this._getProjectIdx(prj.id);
     const delPrj = prj;
     if (idx === -1) {
@@ -143,13 +141,24 @@ export class ProjectService {
       .map(res => delPrj);
   }
 
-  Sync(prj: IProject): Observable<string> {
+  sync(prj: IProject): Observable<string> {
     const idx = this._getProjectIdx(prj.id);
     if (idx === -1) {
       throw new Error('Invalid project id (id=' + prj.id + ')');
     }
     return this.xdsSvr.syncProject(prj.id);
   }
+
+  setSettings(prj: IProject): Observable<IProject> {
+    return this.xdsSvr.updateProject(this._convToIXdsProject(prj))
+      .map(xp => this._convToIProject(xp));
+  }
+
+  getDefaultSettings(): IUISettings {
+    return defaultUISettings;
+  }
+
+  /***  Private functions  ***/
 
   private _isUsableProject(p) {
     return p && p.isInSync &&
@@ -161,7 +170,27 @@ export class ProjectService {
     return this._prjsList.findIndex((item) => item.id === id);
   }
 
+
+  private _convToIXdsProject(prj: IProject): IXDSProjectConfig {
+    const xPrj: IXDSProjectConfig = {
+      id: prj.id || '',
+      serverId: prj.serverId,
+      label: prj.label || '',
+      clientPath: prj.pathClient.trim(),
+      serverPath: prj.pathServer,
+      type: prj.type,
+      defaultSdkID: prj.defaultSdkID,
+      clientData: JSON.stringify(prj.uiSettings || defaultUISettings),
+    };
+    return xPrj;
+  }
+
   private _convToIProject(rPrj: IXDSProjectConfig): IProject {
+    let settings = defaultUISettings;
+    if (rPrj.clientData && rPrj.clientData !== '') {
+      settings = JSON.parse(rPrj.clientData);
+    }
+
     // Convert XDSFolderConfig to IProject
     const pp: IProject = {
       id: rPrj.id,
@@ -175,14 +204,15 @@ export class ProjectService {
       isUsable: this._isUsableProject(rPrj),
       defaultSdkID: rPrj.defaultSdkID,
       serverPrjDef: Object.assign({}, rPrj),  // do a copy
+      uiSettings: settings,
     };
     return pp;
   }
 
-  private _addProject(rPrj: IXDSProjectConfig, noNext?: boolean): IProject {
+  private _addProject(prj: IXDSProjectConfig, noNext?: boolean): IProject {
 
     // Convert XDSFolderConfig to IProject
-    const pp = this._convToIProject(rPrj);
+    const pp = this._convToIProject(prj);
 
     // add new project
     this._prjsList.push(pp);
@@ -199,9 +229,38 @@ export class ProjectService {
     });
 
     if (!noNext) {
-      this.prjsSubject.next(Object.assign([], this._prjsList));
+      this.prjsSubject.next(this._prjsList);
     }
 
     return pp;
   }
+
+  private _delProject(prj: IXDSProjectConfig) {
+    const idx = this._prjsList.findIndex(item => item.id === prj.id);
+    if (idx === -1) {
+      if (isDevMode) {
+        /* tslint:disable:no-console */
+        console.log('Warning: Try to delete project unknown id: prj=', prj);
+      }
+      return;
+    }
+    const delId = this._prjsList[idx].id;
+    this._prjsList.splice(idx, 1);
+    if (this._prjsList[idx].id === this._current.id) {
+      this.setCurrent(this._prjsList[0]);
+    }
+    this.prjsSubject.next(this._prjsList);
+  }
+
+  private _updateProject(prj: IXDSProjectConfig) {
+    const i = this._getProjectIdx(prj.id);
+    if (i >= 0) {
+      // XXX for now, only isInSync and status may change
+      this._prjsList[i].isInSync = prj.isInSync;
+      this._prjsList[i].status = prj.status;
+      this._prjsList[i].isUsable = this._isUsableProject(prj);
+      this.prjsSubject.next(this._prjsList);
+    }
+  }
+
 }

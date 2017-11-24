@@ -1,10 +1,12 @@
 import { Component, ViewEncapsulation, AfterViewChecked, ElementRef, ViewChild, OnInit, Input } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { FormControl, FormGroup, Validators, FormBuilder } from '@angular/forms';
-import { CookieService } from 'ngx-cookie';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 import 'rxjs/add/operator/scan';
 import 'rxjs/add/operator/startWith';
+
+import { BuildSettingsModalComponent } from './build-settings-modal/build-settings-modal.component';
 
 import { XDSAgentService, ICmdOutput } from '../../@core-xds/services/xdsagent.service';
 import { ProjectService, IProject } from '../../@core-xds/services/project.service';
@@ -26,9 +28,6 @@ export class BuildComponent implements OnInit, AfterViewChecked {
   //  @Input() curProject: IProject;
   @Input() curProject = <IProject>null;
 
-  public buildForm: FormGroup;
-  public subpathCtrl = new FormControl('', Validators.required);
-  public debugEnable = false;
   public buildIsCollapsed = false;
   public cmdOutput: string;
   public cmdInfo: string;
@@ -38,37 +37,16 @@ export class BuildComponent implements OnInit, AfterViewChecked {
   constructor(
     private prjSvr: ProjectService,
     private xdsSvr: XDSAgentService,
-    private fb: FormBuilder,
     private alertSvr: AlertService,
     private sdkSvr: SdkService,
-    private cookie: CookieService,
+    private modalService: NgbModal,
   ) {
     this.cmdOutput = '';
     this.cmdInfo = '';      // TODO: to be remove (only for debug)
-    this.buildForm = fb.group({
-      subpath: this.subpathCtrl,
-      cmdClean: ['', Validators.nullValidator],
-      cmdPrebuild: ['', Validators.nullValidator],
-      cmdBuild: ['', Validators.nullValidator],
-      cmdPopulate: ['', Validators.nullValidator],
-      cmdArgs: ['', Validators.nullValidator],
-      envVars: ['', Validators.nullValidator],
-    });
+
   }
 
   ngOnInit() {
-    // Set default settings
-    // TODO save & restore values from cookies
-    this.buildForm.patchValue({
-      subpath: '',
-      cmdClean: 'rm -rf build',
-      cmdPrebuild: 'mkdir -p build && cd build && cmake ..',
-      cmdBuild: 'cd build && make',
-      cmdPopulate: 'cd build && make remote-target-populate',
-      cmdArgs: '',
-      envVars: '',
-    });
-
     // Command output data tunneling
     this.xdsSvr.CmdOutput$.subscribe(data => {
       this.cmdOutput += data.stdout;
@@ -88,69 +66,76 @@ export class BuildComponent implements OnInit, AfterViewChecked {
     });
 
     this._scrollToBottom();
-
-    // only use for debug
-    this.debugEnable = (this.cookie.get('debug_build') === '1');
   }
 
   ngAfterViewChecked() {
     this._scrollToBottom();
   }
 
-  reset() {
+  resetOutput() {
     this.cmdOutput = '';
   }
 
+  settingsShow() {
+    const activeModal = this.modalService.open(BuildSettingsModalComponent, { size: 'lg', container: 'nb-layout' });
+    activeModal.componentInstance.modalHeader = 'Large Modal';
+  }
+
   clean() {
+    const curPrj = this.prjSvr.getCurrent();
     this._exec(
-      this.buildForm.value.cmdClean,
-      this.buildForm.value.subpath,
+      curPrj.uiSettings.cmdClean,
+      curPrj.uiSettings.subpath,
       [],
-      this.buildForm.value.envVars);
+      curPrj.uiSettings.envVars.join(' '));
   }
 
   preBuild() {
+    const curPrj = this.prjSvr.getCurrent();
     this._exec(
-      this.buildForm.value.cmdPrebuild,
-      this.buildForm.value.subpath,
+      curPrj.uiSettings.cmdPrebuild,
+      curPrj.uiSettings.subpath,
       [],
-      this.buildForm.value.envVars);
+      curPrj.uiSettings.envVars.join(' '));
   }
 
   build() {
+    const curPrj = this.prjSvr.getCurrent();
     this._exec(
-      this.buildForm.value.cmdBuild,
-      this.buildForm.value.subpath,
+      curPrj.uiSettings.cmdBuild,
+      curPrj.uiSettings.subpath,
       [],
-      this.buildForm.value.envVars
+      curPrj.uiSettings.envVars.join(' '),
     );
   }
 
   populate() {
+    const curPrj = this.prjSvr.getCurrent();
     this._exec(
-      this.buildForm.value.cmdPopulate,
-      this.buildForm.value.subpath,
+      curPrj.uiSettings.cmdPopulate,
+      curPrj.uiSettings.subpath,
       [], // args
-      this.buildForm.value.envVars
+      curPrj.uiSettings.envVars.join(' '),
     );
   }
 
   execCmd() {
+    const curPrj = this.prjSvr.getCurrent();
     this._exec(
-      this.buildForm.value.cmdArgs,
-      this.buildForm.value.subpath,
+      curPrj.uiSettings.cmdArgs.join(' '),
+      curPrj.uiSettings.subpath,
       [],
-      this.buildForm.value.envVars
+      curPrj.uiSettings.envVars.join(' '),
     );
   }
 
   private _exec(cmd: string, dir: string, args: string[], env: string) {
-    if (!this.curProject) {
-      this.alertSvr.warning('No active project', true);
-    }
+    this.curProject = this.prjSvr.getCurrent();
+    const prjID = this.curProject.id;
 
-    // const prjID = this.curProject.id;
-    const prjID = this.prjSvr.getCurrent().id;
+    if (!this.curProject) {
+      return this.alertSvr.warning('No active project', true);
+    }
 
     this.cmdOutput += this._outputHeader();
 

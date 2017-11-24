@@ -17,28 +17,28 @@ export class ProjectCardComponent {
 
   constructor(
     private alert: AlertService,
-    private projectSvr: ProjectService
+    private projectSvr: ProjectService,
   ) {
   }
 
   delete(prj: IProject) {
-    this.projectSvr.Delete(prj).subscribe(
+    this.projectSvr.delete(prj).subscribe(
       res => { },
-      err => this.alert.error('ERROR delete: ' + err)
+      err => this.alert.error('ERROR delete: ' + err),
     );
   }
 
   sync(prj: IProject) {
-    this.projectSvr.Sync(prj).subscribe(
+    this.projectSvr.sync(prj).subscribe(
       res => { },
-      err => this.alert.error('ERROR: ' + err)
+      err => this.alert.error('ERROR: ' + err),
     );
   }
 }
 
 // Make Project type human readable
 @Pipe({
-  name: 'readableType'
+  name: 'readableType',
 })
 
 export class ProjectReadableTypePipe implements PipeTransform {

@@ -20,7 +20,7 @@
       </div>
     </nb-card-body>
   </div>
-  <div class="col-md-12 col-lg-12 col-xxxl-6" *ngFor="let prj of (projects$ | async)">
+  <div class="col-md-6 col-lg-6" *ngFor="let prj of (projects$ | async)">
     <xds-project-card [project]="prj"></xds-project-card>
   </div>
 </div>

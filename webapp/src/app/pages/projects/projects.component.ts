@@ -23,7 +23,7 @@ export class ProjectsComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.projects$ = this.projectSvr.Projects$;
+    this.projects$ = this.projectSvr.projects$;
   }
 
   add() {

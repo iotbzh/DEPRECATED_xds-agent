@@ -39,13 +39,14 @@
           <input type="text" id="inputLabel" class="form-control" formControlName="label" (keyup)="onKeyLabel($event)">
         </div>
       </div>
-
-      <div class="offset-sm-3 col-sm-9">
-        <button class="btn btn-md btn-secondary" (click)="cancelAction=true; closeModal()"> Cancel </button>
-        <button class="btn btn-md btn-primary" type="submit" [disabled]="!addProjectForm.valid">Add Folder</button>
-      </div>
     </form>
   </div>
 </div>
 <div class="modal-footer form-group">
+  <div class="col-12">
+    <div class="offset-sm-4 col-sm-6">
+      <button class="btn btn-md btn-secondary" (click)="cancelAction=true; closeModal()"> Cancel </button>
+      <button class="btn btn-md btn-primary" (click)="onSubmit()" [disabled]="!addProjectForm.valid">Add Folder</button>
+    </div>
+  </div>
 </div>
