@@ -31,6 +31,7 @@ export class BuildComponent implements OnInit, AfterViewChecked {
   public buildIsCollapsed = false;
   public cmdOutput: string;
   public cmdInfo: string;
+  public curPrj: IProject;
 
   private startTime: Map<string, number> = new Map<string, number>();
 
@@ -42,11 +43,13 @@ export class BuildComponent implements OnInit, AfterViewChecked {
     private modalService: NgbModal,
   ) {
     this.cmdOutput = '';
-    this.cmdInfo = '';      // TODO: to be remove (only for debug)
-
+    this.cmdInfo = '';       // TODO: to be remove (only for debug)
   }
 
   ngOnInit() {
+    // Retreive current project
+    this.prjSvr.curProject$.subscribe(p => this.curPrj = p);
+
     // Command output data tunneling
     this.xdsSvr.CmdOutput$.subscribe(data => {
       this.cmdOutput += data.stdout;
@@ -76,66 +79,82 @@ export class BuildComponent implements OnInit, AfterViewChecked {
     this.cmdOutput = '';
   }
 
+  isSetupValid(): boolean {
+    return (typeof this.curPrj !== 'undefined');
+  }
+
   settingsShow() {
+    if (!this.isSetupValid()) {
+      return this.alertSvr.warning('Please select first a valid project.', true);
+    }
+
     const activeModal = this.modalService.open(BuildSettingsModalComponent, { size: 'lg', container: 'nb-layout' });
     activeModal.componentInstance.modalHeader = 'Large Modal';
   }
 
   clean() {
-    const curPrj = this.prjSvr.getCurrent();
+    if (!this.isSetupValid()) {
+      return this.alertSvr.warning('Please select first a valid project.', true);
+    }
     this._exec(
-      curPrj.uiSettings.cmdClean,
-      curPrj.uiSettings.subpath,
+      this.curPrj.uiSettings.cmdClean,
+      this.curPrj.uiSettings.subpath,
       [],
-      curPrj.uiSettings.envVars.join(' '));
+      this.curPrj.uiSettings.envVars.join(' '));
   }
 
   preBuild() {
-    const curPrj = this.prjSvr.getCurrent();
+    if (!this.isSetupValid()) {
+      return this.alertSvr.warning('Please select first a valid project.', true);
+    }
     this._exec(
-      curPrj.uiSettings.cmdPrebuild,
-      curPrj.uiSettings.subpath,
+      this.curPrj.uiSettings.cmdPrebuild,
+      this.curPrj.uiSettings.subpath,
       [],
-      curPrj.uiSettings.envVars.join(' '));
+      this.curPrj.uiSettings.envVars.join(' '));
   }
 
   build() {
-    const curPrj = this.prjSvr.getCurrent();
+    if (!this.isSetupValid()) {
+      return this.alertSvr.warning('Please select first a valid project.', true);
+    }
     this._exec(
-      curPrj.uiSettings.cmdBuild,
-      curPrj.uiSettings.subpath,
+      this.curPrj.uiSettings.cmdBuild,
+      this.curPrj.uiSettings.subpath,
       [],
-      curPrj.uiSettings.envVars.join(' '),
+      this.curPrj.uiSettings.envVars.join(' '),
     );
   }
 
   populate() {
-    const curPrj = this.prjSvr.getCurrent();
+    if (!this.isSetupValid()) {
+      return this.alertSvr.warning('Please select first a valid project.', true);
+    }
     this._exec(
-      curPrj.uiSettings.cmdPopulate,
-      curPrj.uiSettings.subpath,
+      this.curPrj.uiSettings.cmdPopulate,
+      this.curPrj.uiSettings.subpath,
       [], // args
-      curPrj.uiSettings.envVars.join(' '),
+      this.curPrj.uiSettings.envVars.join(' '),
     );
   }
 
   execCmd() {
-    const curPrj = this.prjSvr.getCurrent();
+    if (!this.isSetupValid()) {
+      return this.alertSvr.warning('Please select first a valid project.', true);
+    }
     this._exec(
-      curPrj.uiSettings.cmdArgs.join(' '),
-      curPrj.uiSettings.subpath,
+      this.curPrj.uiSettings.cmdArgs.join(' '),
+      this.curPrj.uiSettings.subpath,
       [],
-      curPrj.uiSettings.envVars.join(' '),
+      this.curPrj.uiSettings.envVars.join(' '),
     );
   }
 
   private _exec(cmd: string, dir: string, args: string[], env: string) {
-    this.curProject = this.prjSvr.getCurrent();
-    const prjID = this.curProject.id;
-
-    if (!this.curProject) {
+    if (!this.isSetupValid()) {
       return this.alertSvr.warning('No active project', true);
     }
+    const prjID = this.curPrj.id;
 
     this.cmdOutput += this._outputHeader();
 

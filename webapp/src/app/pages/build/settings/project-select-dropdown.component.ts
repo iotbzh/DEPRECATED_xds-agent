@@ -28,7 +28,9 @@ export class ProjectSelectDropdownComponent implements OnInit {
   }
 
   select() {
-    this.projectSvr.setCurrentById(this.curPrj.id);
+    if (this.curPrj) {
+      this.projectSvr.setCurrentById(this.curPrj.id);
+    }
   }
 }
 

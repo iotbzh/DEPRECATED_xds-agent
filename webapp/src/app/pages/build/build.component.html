@@ -27,7 +27,7 @@
 
           <nb-card-body>
             <nb-actions size="medium" fullWidth>
-              <nb-action (click)="settingsShow()">
+              <nb-action (click)="settingsShow()" [disabled]="!isSetupValid()">
                 <i class="fa fa-cog"></i>
                 <span>Settings</span>
               </nb-action>
@@ -35,19 +35,19 @@
               <nb-action>
               </nb-action>
 
-              <nb-action (click)="clean()">
+              <nb-action (click)="clean()" [disabled]="!isSetupValid()">
                 <i class="fa fa-eraser"></i>
                 <span>Clean</span>
               </nb-action>
-              <nb-action (click)="preBuild()">
+              <nb-action (click)="preBuild()" [disabled]="!isSetupValid()">
                 <i class="nb-list"></i>
                 <span>Pre-Build</span>
               </nb-action>
-              <nb-action (click)="build()">
+              <nb-action (click)="build()" [disabled]="!isSetupValid()">
                 <i class="fa fa-wrench"></i>
                 <span>Build</span>
               </nb-action>
-              <nb-action (click)="populate()">
+              <nb-action (click)="populate()" [disabled]="!isSetupValid()">
                 <i class="fa fa-send"></i>
                 <span>Populate</span>
               </nb-action>
@@ -57,10 +57,10 @@
         </nb-tab>
 
         <nb-tab tabTitle="Deploy">
-          <span> Content deploy...</span>
+          <br><span>&nbsp;&nbsp; Under construction...</span>
         </nb-tab>
         <nb-tab tabTitle="Debug">
-          <span> Content debug...</span>
+          <br><span>&nbsp;&nbsp; Under construction...</span>
         </nb-tab>
       </nb-tabset>
     </nb-card>

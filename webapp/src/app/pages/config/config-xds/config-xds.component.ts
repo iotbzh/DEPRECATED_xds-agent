@@ -20,7 +20,7 @@ export class ConfigXdsComponent {
   // TODO: cleanup agentStatus$: Observable<IAgentStatus>;
   applying = false;
   xdsServerUrl = '';
-  server: IXDServerCfg = { id: '', url: '', connRetry: 10, connected: false };
+  server: IXDServerCfg = { id: '', url: 'http://localhost:8000', connRetry: 10, connected: false };
 
   configFormChanged = false;
 
