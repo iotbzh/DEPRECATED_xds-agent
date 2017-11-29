@@ -1,4 +1,4 @@
-package apiv1
+package xaapiv1
 
 // VersionData
 type VersionData struct {

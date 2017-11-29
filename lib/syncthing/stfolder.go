@@ -20,7 +20,7 @@ type FolderChangeArg struct {
 
 // FolderLoadFromStConfig Load/Retrieve folder config from syncthing database
 /*
-func (s *SyncThing) FolderLoadFromStConfig(f *[]XdsFolderConfig) error {
+func (s *SyncThing) FolderLoadFromStConfig(f *[]xsapiv1.FolderConfig) error {
 
 	defaultSdk := "" // cannot know which was the default sdk
 
@@ -40,15 +40,15 @@ func (s *SyncThing) FolderLoadFromStConfig(f *[]XdsFolderConfig) error {
 	}
 
 	for _, stFld := range stCfg.Folders {
-		*f = append(*f, XdsFolderConfig{
+		*f = append(*f, xsapiv1.FolderConfig{
 			ID:            stFld.ID,
 			Label:         stFld.Label,
 			ClientPath:    strings.TrimRight(stFld.Path, "/"),
-			Type:          XdsTypeCloudSync,
+			Type:          xsapiv1.TypeCloudSync,
 			Status:        StatusDisable,
 			DefaultSdk:    defaultSdk,
 			RootPath:      "",
-			DataCloudSync: XdsCloudSyncConfig{SyncThingID: devID},
+			DataCloudSync: xsapiv1.CloudSyncConfig{SyncThingID: devID},
 		})
 	}
 

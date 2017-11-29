@@ -6,8 +6,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/iotbzh/xds-agent/lib/apiv1"
+	"github.com/iotbzh/xds-agent/lib/xaapiv1"
 	common "github.com/iotbzh/xds-common/golib"
+	"github.com/iotbzh/xds-server/lib/xsapiv1"
 )
 
 // IPROJECT interface implementation for native/path mapping projects
@@ -16,7 +17,7 @@ import (
 type PathMap struct {
 	*Context
 	server *XdsServer
-	folder *XdsFolderConfig
+	folder *xsapiv1.FolderConfig
 }
 
 // NewProjectPathMap Create a new instance of PathMap
@@ -24,13 +25,13 @@ func NewProjectPathMap(ctx *Context, svr *XdsServer) *PathMap {
 	p := PathMap{
 		Context: ctx,
 		server:  svr,
-		folder:  &XdsFolderConfig{},
+		folder:  &xsapiv1.FolderConfig{},
 	}
 	return &p
 }
 
 // Add a new project
-func (p *PathMap) Add(cfg apiv1.ProjectConfig) (*apiv1.ProjectConfig, error) {
+func (p *PathMap) Add(cfg xaapiv1.ProjectConfig) (*xaapiv1.ProjectConfig, error) {
 	var err error
 	var file *os.File
 	errMsg := "ClientPath sanity check error (%d): %v"
@@ -92,24 +93,24 @@ func (p *PathMap) Delete() error {
 }
 
 // GetProject Get public part of project config
-func (p *PathMap) GetProject() *apiv1.ProjectConfig {
+func (p *PathMap) GetProject() *xaapiv1.ProjectConfig {
 	prj := p.server.FolderToProject(*p.folder)
 	prj.ServerID = p.server.ID
 	return &prj
 }
 
 // Setup Setup local project config
-func (p *PathMap) Setup(prj apiv1.ProjectConfig) (*apiv1.ProjectConfig, error) {
+func (p *PathMap) Setup(prj xaapiv1.ProjectConfig) (*xaapiv1.ProjectConfig, error) {
 	p.folder = p.server.ProjectToFolder(prj)
 	np := p.GetProject()
-	if err := p.events.Emit(apiv1.EVTProjectChange, np, ""); err != nil {
+	if err := p.events.Emit(xaapiv1.EVTProjectChange, np, ""); err != nil {
 		return np, err
 	}
 	return np, nil
 }
 
 // Update Update some field of a project
-func (p *PathMap) Update(prj apiv1.ProjectConfig) (*apiv1.ProjectConfig, error) {
+func (p *PathMap) Update(prj xaapiv1.ProjectConfig) (*xaapiv1.ProjectConfig, error) {
 	if p.folder.ID != prj.ID {
 		return nil, fmt.Errorf("Invalid id")
 	}

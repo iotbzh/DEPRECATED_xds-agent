@@ -140,7 +140,8 @@ vendor: tools/glide glide.yaml
 
 vendor/debug: vendor
 	(cd vendor/github.com/iotbzh && \
-		rm -rf xds-common && ln -s ../../../../xds-common )
+		rm -rf xds-common && ln -s ../../../../xds-common && \
+		rm -rf xds-server && ln -s ../../../../xds-server )
 
 .PHONY: tools/glide
 tools/glide:

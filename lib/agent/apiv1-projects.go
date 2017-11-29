@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/iotbzh/xds-agent/lib/apiv1"
+	"github.com/iotbzh/xds-agent/lib/xaapiv1"
 	common "github.com/iotbzh/xds-common/golib"
 )
 
@@ -31,7 +31,7 @@ func (s *APIService) getProject(c *gin.Context) {
 
 // addProject adds a new project to server config
 func (s *APIService) addProject(c *gin.Context) {
-	var cfgArg apiv1.ProjectConfig
+	var cfgArg xaapiv1.ProjectConfig
 	if c.BindJSON(&cfgArg) != nil {
 		common.APIError(c, "Invalid arguments")
 		return
@@ -93,7 +93,7 @@ func (s *APIService) updateProject(c *gin.Context) {
 		return
 	}
 
-	var cfgArg apiv1.ProjectConfig
+	var cfgArg xaapiv1.ProjectConfig
 	if c.BindJSON(&cfgArg) != nil {
 		common.APIError(c, "Invalid arguments")
 		return

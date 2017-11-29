@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/iotbzh/xds-agent/lib/apiv1"
+	"github.com/iotbzh/xds-agent/lib/xaapiv1"
 	common "github.com/iotbzh/xds-common/golib"
 )
 
@@ -15,7 +15,7 @@ func (s *APIService) eventsList(c *gin.Context) {
 
 // eventsRegister Registering for events that will be send over a WS
 func (s *APIService) eventsRegister(c *gin.Context) {
-	var args apiv1.EventRegisterArgs
+	var args xaapiv1.EventRegisterArgs
 
 	if c.BindJSON(&args) != nil || args.Name == "" {
 		common.APIError(c, "Invalid arguments")
@@ -39,7 +39,7 @@ func (s *APIService) eventsRegister(c *gin.Context) {
 
 // eventsRegister Registering for events that will be send over a WS
 func (s *APIService) eventsUnRegister(c *gin.Context) {
-	var args apiv1.EventUnRegisterArgs
+	var args xaapiv1.EventUnRegisterArgs
 
 	if c.BindJSON(&args) != nil || args.Name == "" {
 		common.APIError(c, "Invalid arguments")

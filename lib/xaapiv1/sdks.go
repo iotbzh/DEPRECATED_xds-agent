@@ -1,4 +1,4 @@
-package apiv1
+package xaapiv1
 
 // SDK Define a cross tool chain used to build application
 type SDK struct {

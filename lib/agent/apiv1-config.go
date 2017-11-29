@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/gin-gonic/gin"
-	"github.com/iotbzh/xds-agent/lib/apiv1"
+	"github.com/iotbzh/xds-agent/lib/xaapiv1"
 	"github.com/iotbzh/xds-agent/lib/xdsconfig"
 	common "github.com/iotbzh/xds-common/golib"
 )
@@ -24,7 +24,7 @@ func (s *APIService) getConfig(c *gin.Context) {
 
 // SetConfig sets configuration
 func (s *APIService) setConfig(c *gin.Context) {
-	var cfgArg apiv1.APIConfig
+	var cfgArg xaapiv1.APIConfig
 	if c.BindJSON(&cfgArg) != nil {
 		common.APIError(c, "Invalid arguments")
 		return
@@ -65,16 +65,16 @@ func (s *APIService) setConfig(c *gin.Context) {
 	c.JSON(http.StatusOK, s._getConfig())
 }
 
-func (s *APIService) _getConfig() apiv1.APIConfig {
-	cfg := apiv1.APIConfig{
+func (s *APIService) _getConfig() xaapiv1.APIConfig {
+	cfg := xaapiv1.APIConfig{
 		Version:       s.Config.Version,
 		APIVersion:    s.Config.APIVersion,
 		VersionGitTag: s.Config.VersionGitTag,
-		Servers:       []apiv1.ServerCfg{},
+		Servers:       []xaapiv1.ServerCfg{},
 	}
 
 	for _, svr := range s.xdsServers {
-		cfg.Servers = append(cfg.Servers, apiv1.ServerCfg{
+		cfg.Servers = append(cfg.Servers, xaapiv1.ServerCfg{
 			ID:         svr.ID,
 			URL:        svr.BaseURL,
 			APIURL:     svr.APIURL,

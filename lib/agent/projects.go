@@ -7,8 +7,9 @@ import (
 	"time"
 
 	"github.com/franciscocpg/reflectme"
-	"github.com/iotbzh/xds-agent/lib/apiv1"
 	"github.com/iotbzh/xds-agent/lib/syncthing"
+	"github.com/iotbzh/xds-agent/lib/xaapiv1"
+	"github.com/iotbzh/xds-server/lib/xsapiv1"
 	"github.com/syncthing/syncthing/lib/sync"
 )
 
@@ -45,7 +46,7 @@ func (p *Projects) Init(server *XdsServer) error {
 		if svr.Disabled {
 			continue
 		}
-		xFlds := []XdsFolderConfig{}
+		xFlds := []xsapiv1.FolderConfig{}
 		if err := svr.GetFolders(&xFlds); err != nil {
 			errMsg += fmt.Sprintf("Cannot retrieve folders config of XDS server ID %s : %v \n", svr.ID, err.Error())
 			continue
@@ -102,7 +103,7 @@ func (p *Projects) Get(id string) *IPROJECT {
 }
 
 // GetProjectArr returns the config of all folders as an array
-func (p *Projects) GetProjectArr() []apiv1.ProjectConfig {
+func (p *Projects) GetProjectArr() []xaapiv1.ProjectConfig {
 	pjMutex.Lock()
 	defer pjMutex.Unlock()
 
@@ -110,8 +111,8 @@ func (p *Projects) GetProjectArr() []apiv1.ProjectConfig {
 }
 
 // GetProjectArrUnsafe Same as GetProjectArr without mutex protection
-func (p *Projects) GetProjectArrUnsafe() []apiv1.ProjectConfig {
-	conf := []apiv1.ProjectConfig{}
+func (p *Projects) GetProjectArrUnsafe() []xaapiv1.ProjectConfig {
+	conf := []xaapiv1.ProjectConfig{}
 	for _, v := range p.projects {
 		prj := (*v).GetProject()
 		conf = append(conf, *prj)
@@ -120,14 +121,14 @@ func (p *Projects) GetProjectArrUnsafe() []apiv1.ProjectConfig {
 }
 
 // Add adds a new folder
-func (p *Projects) Add(newF apiv1.ProjectConfig, fromSid string) (*apiv1.ProjectConfig, error) {
+func (p *Projects) Add(newF xaapiv1.ProjectConfig, fromSid string) (*xaapiv1.ProjectConfig, error) {
 	prj, err := p.createUpdate(newF, true, false)
 	if err != nil {
 		return prj, err
 	}
 
 	// Notify client with event
-	if err := p.events.Emit(apiv1.EVTProjectAdd, *prj, fromSid); err != nil {
+	if err := p.events.Emit(xaapiv1.EVTProjectAdd, *prj, fromSid); err != nil {
 		p.Log.Warningf("Cannot notify project deletion: %v", err)
 	}
 
@@ -135,7 +136,7 @@ func (p *Projects) Add(newF apiv1.ProjectConfig, fromSid string) (*apiv1.Project
 }
 
 // CreateUpdate creates or update a folder
-func (p *Projects) createUpdate(newF apiv1.ProjectConfig, create bool, initial bool) (*apiv1.ProjectConfig, error) {
+func (p *Projects) createUpdate(newF xaapiv1.ProjectConfig, create bool, initial bool) (*xaapiv1.ProjectConfig, error) {
 	var err error
 
 	pjMutex.Lock()
@@ -167,7 +168,7 @@ func (p *Projects) createUpdate(newF apiv1.ProjectConfig, create bool, initial b
 	var fld IPROJECT
 	switch newF.Type {
 	// SYNCTHING
-	case apiv1.TypeCloudSync:
+	case xaapiv1.TypeCloudSync:
 		if p.SThg != nil {
 			fld = NewProjectST(p.Context, svr)
 		} else {
@@ -175,24 +176,24 @@ func (p *Projects) createUpdate(newF apiv1.ProjectConfig, create bool, initial b
 		}
 
 	// PATH MAP
-	case apiv1.TypePathMap:
+	case xaapiv1.TypePathMap:
 		fld = NewProjectPathMap(p.Context, svr)
 	default:
 		return nil, fmt.Errorf("Unsupported folder type")
 	}
 
-	var newPrj *apiv1.ProjectConfig
+	var newPrj *xaapiv1.ProjectConfig
 	if create {
 		// Add project on server
 		if newPrj, err = fld.Add(newF); err != nil {
-			newF.Status = apiv1.StatusErrorConfig
+			newF.Status = xaapiv1.StatusErrorConfig
 			log.Printf("ERROR Adding project: %v\n", err)
 			return newPrj, err
 		}
 	} else {
 		// Just update project config
 		if newPrj, err = fld.Setup(newF); err != nil {
-			newF.Status = apiv1.StatusErrorConfig
+			newF.Status = xaapiv1.StatusErrorConfig
 			log.Printf("ERROR Updating project: %v\n", err)
 			return newPrj, err
 		}
@@ -218,13 +219,13 @@ func (p *Projects) createUpdate(newF apiv1.ProjectConfig, create bool, initial b
 }
 
 // Delete deletes a specific folder
-func (p *Projects) Delete(id, fromSid string) (apiv1.ProjectConfig, error) {
+func (p *Projects) Delete(id, fromSid string) (xaapiv1.ProjectConfig, error) {
 	var err error
 
 	pjMutex.Lock()
 	defer pjMutex.Unlock()
 
-	fld := apiv1.ProjectConfig{}
+	fld := xaapiv1.ProjectConfig{}
 	fc, exist := p.projects[id]
 	if !exist {
 		return fld, fmt.Errorf("Unknown id")
@@ -239,7 +240,7 @@ func (p *Projects) Delete(id, fromSid string) (apiv1.ProjectConfig, error) {
 	delete(p.projects, id)
 
 	// Notify client with event
-	if err := p.events.Emit(apiv1.EVTProjectDelete, *prj, fromSid); err != nil {
+	if err := p.events.Emit(xaapiv1.EVTProjectDelete, *prj, fromSid); err != nil {
 		p.Log.Warningf("Cannot notify project deletion: %v", err)
 	}
 
@@ -265,7 +266,7 @@ func (p *Projects) IsProjectInSync(id string) (bool, error) {
 }
 
 // Update Update some field of a project
-func (p *Projects) Update(id string, prj apiv1.ProjectConfig, fromSid string) (*apiv1.ProjectConfig, error) {
+func (p *Projects) Update(id string, prj xaapiv1.ProjectConfig, fromSid string) (*xaapiv1.ProjectConfig, error) {
 
 	pjMutex.Lock()
 	defer pjMutex.Unlock()
@@ -276,12 +277,12 @@ func (p *Projects) Update(id string, prj apiv1.ProjectConfig, fromSid string) (*
 	}
 
 	// Copy current in a new object to change nothing in case of an error rises
-	newFld := apiv1.ProjectConfig{}
+	newFld := xaapiv1.ProjectConfig{}
 	reflectme.Copy((*fc).GetProject(), &newFld)
 
 	// Only update some fields
 	dirty := false
-	for _, fieldName := range apiv1.ProjectConfigUpdatableFields {
+	for _, fieldName := range xaapiv1.ProjectConfigUpdatableFields {
 		valNew, err := reflectme.GetField(prj, fieldName)
 		if err == nil {
 			valCur, err := reflectme.GetField(newFld, fieldName)
@@ -305,7 +306,7 @@ func (p *Projects) Update(id string, prj apiv1.ProjectConfig, fromSid string) (*
 	}
 
 	// Notify client with event
-	if err := p.events.Emit(apiv1.EVTProjectChange, *upPrj, fromSid); err != nil {
+	if err := p.events.Emit(xaapiv1.EVTProjectChange, *upPrj, fromSid); err != nil {
 		p.Log.Warningf("Cannot notify project change: %v", err)
 	}
 	return upPrj, err

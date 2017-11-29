@@ -1,4 +1,4 @@
-package apiv1
+package xaapiv1
 
 import (
 	"encoding/json"
@@ -24,10 +24,10 @@ const (
 
 	// Supported Events type
 	EVTAll           = EventTypePrefix + "all"
-	EVTServerConfig  = EventTypePrefix + "server-config"        // type EventMsg with Data type apiv1.ServerCfg
-	EVTProjectAdd    = EventTypePrefix + "project-add"          // type EventMsg with Data type apiv1.ProjectConfig
-	EVTProjectDelete = EventTypePrefix + "project-delete"       // type EventMsg with Data type apiv1.ProjectConfig
-	EVTProjectChange = EventTypePrefix + "project-state-change" // type EventMsg with Data type apiv1.ProjectConfig
+	EVTServerConfig  = EventTypePrefix + "server-config"        // type EventMsg with Data type xaapiv1.ServerCfg
+	EVTProjectAdd    = EventTypePrefix + "project-add"          // type EventMsg with Data type xaapiv1.ProjectConfig
+	EVTProjectDelete = EventTypePrefix + "project-delete"       // type EventMsg with Data type xaapiv1.ProjectConfig
+	EVTProjectChange = EventTypePrefix + "project-state-change" // type EventMsg with Data type xaapiv1.ProjectConfig
 )
 
 // EVTAllList List of all supported events

@@ -11,7 +11,7 @@ import (
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/googollee/go-socket.io"
-	"github.com/iotbzh/xds-agent/lib/apiv1"
+	"github.com/iotbzh/xds-agent/lib/xaapiv1"
 )
 
 // WebServer .
@@ -233,7 +233,7 @@ func (s *WebServer) socketHandler(c *gin.Context) {
 
 		so.On("disconnection", func() {
 			s.Log.Debugf("WS disconnected (WSID=%s, SID=%s)", so.Id(), sess.ID)
-			s.events.UnRegister(apiv1.EVTAll, sess.ID)
+			s.events.UnRegister(xaapiv1.EVTAll, sess.ID)
 			s.sessions.UpdateIOSocket(sess.ID, nil)
 		})
 	})

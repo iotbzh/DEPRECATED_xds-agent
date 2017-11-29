@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/iotbzh/xds-agent/lib/apiv1"
+	"github.com/iotbzh/xds-agent/lib/xaapiv1"
 )
 
 // EventDef Definition on one event
@@ -21,7 +21,7 @@ type Events struct {
 // NewEvents creates an instance of Events
 func NewEvents(ctx *Context) *Events {
 	evMap := make(map[string]*EventDef)
-	for _, ev := range apiv1.EVTAllList {
+	for _, ev := range xaapiv1.EVTAllList {
 		evMap[ev] = &EventDef{
 			sids: make(map[string]int),
 		}
@@ -34,13 +34,13 @@ func NewEvents(ctx *Context) *Events {
 
 // GetList returns the list of all supported events
 func (e *Events) GetList() []string {
-	return apiv1.EVTAllList
+	return xaapiv1.EVTAllList
 }
 
 // Register Used by a client/session to register to a specific (or all) event(s)
 func (e *Events) Register(evName, sessionID string) error {
-	evs := apiv1.EVTAllList
-	if evName != apiv1.EVTAll {
+	evs := xaapiv1.EVTAllList
+	if evName != xaapiv1.EVTAll {
 		if _, ok := e.eventsMap[evName]; !ok {
 			return fmt.Errorf("Unsupported event type name")
 		}
@@ -54,8 +54,8 @@ func (e *Events) Register(evName, sessionID string) error {
 
 // UnRegister Used by a client/session to unregister event(s)
 func (e *Events) UnRegister(evName, sessionID string) error {
-	evs := apiv1.EVTAllList
-	if evName != apiv1.EVTAll {
+	evs := xaapiv1.EVTAllList
+	if evName != xaapiv1.EVTAll {
 		if _, ok := e.eventsMap[evName]; !ok {
 			return fmt.Errorf("Unsupported event type name")
 		}
@@ -92,7 +92,7 @@ func (e *Events) Emit(evName string, data interface{},fromSid string) error {
 			}
 			continue
 		}
-		msg := apiv1.EventMsg{
+		msg := xaapiv1.EventMsg{
 			Time:          time.Now().String(),
 			FromSessionID: fromSid,
 			Type:          evName,

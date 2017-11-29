@@ -1,4 +1,4 @@
-package apiv1
+package xaapiv1
 
 type (
 	// ExecArgs JSON parameters of /exec command

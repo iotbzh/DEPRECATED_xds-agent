@@ -1,4 +1,4 @@
-package apiv1
+package xaapiv1
 
 // APIConfig parameters (json format) of /config command
 type APIConfig struct {
