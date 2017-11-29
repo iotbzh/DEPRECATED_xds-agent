@@ -61,11 +61,13 @@ ifeq ($(filter 1,$(RELEASE) $(REL)),)
 	# disable compiler optimizations and inlining
 	GO_GCFLAGS=-N -l
 	BUILD_MODE="Debug mode"
+	WEBAPP_BUILD_RULE=build
 else
 	# optimized code without debug info
 	GO_LDFLAGS=-s -w
 	GO_GCFLAGS=
 	BUILD_MODE="Release mode"
+	WEBAPP_BUILD_RULE=build:prod
 endif
 
 ifeq ($(SUB_VERSION), )
@@ -108,10 +110,10 @@ distclean: clean
 	cd $(ROOT_SRCDIR) && rm -rf $(LOCAL_BINDIR) ./tools ./glide.lock ./vendor ./*.zip ./webapp/node_modules ./webapp/dist
 
 webapp: webapp/install
-	(cd webapp && npm run build)
+	cd webapp && npm run $(WEBAPP_BUILD_RULE)
 
 webapp/debug:
-	(cd webapp && npm run watch)
+	cd webapp && npm run watch
 
 webapp/install:
 	(cd webapp && npm install)
@@ -128,10 +130,12 @@ uninstall:
 	export DESTDIR=$(DESTDIR) && export DESTDIR_WWW=$(DESTDIR_WWW) && $(ROOT_SRCDIR)/scripts/install.sh uninstall
 
 package: clean tools/syncthing vendor build
-	@mkdir -p $(PACKAGE_DIR)/xds-agent $(PACKAGE_DIR)/scripts
-	@cp -a $(LOCAL_BINDIR)/* $(PACKAGE_DIR)/xds-agent
-	@cp -r $(ROOT_SRCDIR)/conf.d $(ROOT_SRCDIR)/scripts $(PACKAGE_DIR)/xds-agent
-	cd $(PACKAGE_DIR) && zip -r $(ROOT_SRCDIR)/$(PACKAGE_ZIPFILE) ./xds-agent
+	@mkdir -p $(PACKAGE_DIR)/xds-agent/www $(PACKAGE_DIR)/scripts
+	@cp -a $(LOCAL_BINDIR)/* $(PACKAGE_DIR)/xds-agent/
+	@cp -a webapp/dist/* $(PACKAGE_DIR)/xds-agent/www/
+	@cp -r $(ROOT_SRCDIR)/conf.d $(ROOT_SRCDIR)/scripts $(PACKAGE_DIR)/xds-agent/
+	@cd $(PACKAGE_DIR) && zip -r $(ROOT_SRCDIR)/$(PACKAGE_ZIPFILE) ./xds-agent
+	@echo "### Package $(PACKAGE_ZIPFILE) has been successfuly built - $(BUILD_MODE)"
 
 .PHONY: package-all
 package-all:

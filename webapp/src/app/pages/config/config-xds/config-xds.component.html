@@ -10,7 +10,7 @@
               <input type="url" class="form-control" [ngClass]="{ 'form-control-danger': !server?.connected }" id="inputServerUrl" [(ngModel)]="xdsServerUrl" name="serverUrl" (ngModelChange)="configFormChanged=true" [disabled]="applying">
             </div>
             <div class="col-sm-1">
-              <span class="fa fa-fw fa-exchange faa-burst fa-size-x2 vcenter" [ngClass]="{'animated': applying}" [style.color]="(server?.connected && !animated)?'green':'red'" ></span>
+              <span class="fa fa-fw fa-exchange faa-burst fa-size-x2 vcenter" [ngClass]="{'animated': applying}" [style.color]="(server?.connected && !applying)?'green':'red'" ></span>
             </div>
           </div>
           <div class="form-group row">

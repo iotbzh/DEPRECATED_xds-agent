@@ -1,3 +1,4 @@
+/* MODS_XDS: not used for now
 import { Component, OnDestroy, AfterViewInit, Output, EventEmitter, ElementRef } from '@angular/core';
 
 @Component({
@@ -31,3 +32,4 @@ export class TinyMCEComponent implements OnDestroy, AfterViewInit {
     tinymce.remove(this.editor);
   }
 }
+*/
