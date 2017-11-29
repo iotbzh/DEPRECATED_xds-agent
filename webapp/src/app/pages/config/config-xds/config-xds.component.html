@@ -16,7 +16,7 @@
           <div class="form-group row">
             <label class="col-sm-3 col-form-label">XDS Server connection retry</label>
             <div class="col-sm-8" *ngIf="server">
-              <input type="number" class="form-control" id="inputServerConnRetry" [(ngModel)]="server.connRetry" name="serverRetry" (ngModelChange)="configFormChanged=true">
+              <input type="number" class="form-control" id="inputServerConnRetry" [(ngModel)]="server.connRetry" name="serverRetry" (ngModelChange)="configFormChanged=true" [disabled]="applying">
             </div>
           </div>
         </form>
@@ -25,7 +25,7 @@
         <div class="col-12">
           <div class="offset-sm-5 col-sm-2">
             <button class="btn btn-primary" (click)="onSubmit()" [disabled]="
-            applying || (server?.connected && !configFormChanged)">{{ applying ?"Applying... ":"Apply" }}
+            applying || !isApplyBtnEnable()">{{ applying ?"Applying... ":"Apply" }}
             <span *ngIf="applying" class="fa fa-gear faa-spin animated fa-size-x2"></span>
           </button>
           </div>

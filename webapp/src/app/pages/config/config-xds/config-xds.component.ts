@@ -20,7 +20,7 @@ export class ConfigXdsComponent {
   // TODO: cleanup agentStatus$: Observable<IAgentStatus>;
   applying = false;
   xdsServerUrl = '';
-  server: IXDServerCfg;
+  server: IXDServerCfg = { id: '', url: '', connRetry: 10, connected: false };
 
   configFormChanged = false;
 
@@ -33,6 +33,10 @@ export class ConfigXdsComponent {
       this.xdsServerUrl = svr.url;
       this.server = Object.assign({}, svr);
     });
+  }
+
+  isApplyBtnEnable(): boolean {
+    return this.xdsServerUrl !== '' && (!this.server.connected || this.configFormChanged);
   }
 
   onSubmit() {

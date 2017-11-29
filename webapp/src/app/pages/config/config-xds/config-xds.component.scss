@@ -24,3 +24,7 @@ nb-card.inline-form-card nb-card-body {
   //vertical-align: middle;
   margin-top: 33%;
 }
+
+.form-control:disabled {
+  font-weight: lighter;
+}
