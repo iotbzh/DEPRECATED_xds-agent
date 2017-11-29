@@ -71,9 +71,9 @@ else
 endif
 
 ifeq ($(SUB_VERSION), )
-	PACKAGE_ZIPFILE := xds-agent_$(ARCH)-v$(VERSION).zip
+	PACKAGE_ZIPFILE := xds-agent_$(ARCH)-$(VERSION).zip
 else
-	PACKAGE_ZIPFILE := xds-agent_$(ARCH)-v$(VERSION)_$(SUB_VERSION).zip
+	PACKAGE_ZIPFILE := xds-agent_$(ARCH)-$(VERSION)_$(SUB_VERSION).zip
 endif
 
 
