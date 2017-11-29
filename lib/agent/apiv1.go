@@ -84,7 +84,7 @@ func (s *APIService) AddXdsServer(cfg xdsconfig.XDSServerConf) (*XdsServer, erro
 			cfg.APIBaseURL = apiBaseURL
 		}
 		if cfg.APIPartialURL == "" {
-			cfg.APIPartialURL = "/server/" + strconv.Itoa(s.serverIndex)
+			cfg.APIPartialURL = "/servers/" + strconv.Itoa(s.serverIndex)
 			s.serverIndex = s.serverIndex + 1
 		}
 

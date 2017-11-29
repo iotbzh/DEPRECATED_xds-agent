@@ -42,6 +42,7 @@ type XdsServer struct {
 	ioSock    *sio_client.Client
 	logOut    io.Writer
 	apiRouter *gin.RouterGroup
+	cmdList   map[string]interface{}
 }
 
 // EventCB Event emitter callback
@@ -72,6 +73,7 @@ func NewXdsServer(ctx *Context, conf xdsconfig.XDSServerConf) *XdsServer {
 		sockEvents:     make(map[string][]*caller),
 		sockEventsLock: &sync.Mutex{},
 		logOut:         ctx.Log.Out,
+		cmdList:        make(map[string]interface{}),
 	}
 }
 
@@ -172,6 +174,16 @@ func (xs *XdsServer) FolderUpdate(fld *xsapiv1.FolderConfig, resFld *xsapiv1.Fol
 	return xs.client.Put("/folders/"+fld.ID, fld, resFld)
 }
 
+// CommandExec Send POST request to execute a command
+func (xs *XdsServer) CommandExec(args *xsapiv1.ExecArgs, res *xsapiv1.ExecResult) error {
+	return xs.client.Post("/exec", args, res)
+}
+
+// CommandSignal Send POST request to send a signal to a command
+func (xs *XdsServer) CommandSignal(args *xsapiv1.ExecSignalArgs, res *xsapiv1.ExecSigResult) error {
+	return xs.client.Post("/signal", args, res)
+}
+
 // SetAPIRouterGroup .
 func (xs *XdsServer) SetAPIRouterGroup(r *gin.RouterGroup) {
 	xs.apiRouter = r
@@ -257,6 +269,15 @@ func (xs *XdsServer) EventRegister(evName string, id string) error {
 			ProjectID: id,
 		},
 		nil)
+}
+
+// EventEmit Emit a event to XDS Server through WS
+func (xs *XdsServer) EventEmit(message string, args ...interface{}) error {
+	if xs.ioSock == nil {
+		return fmt.Errorf("Io.Socket not initialized")
+	}
+
+	return xs.ioSock.Emit(message, args...)
 }
 
 // EventOn Register a callback on events reception
@@ -402,6 +423,33 @@ func (xs *XdsServer) FolderToProject(fPrj xsapiv1.FolderConfig) xaapiv1.ProjectC
 		ClientData: fPrj.ClientData,
 	}
 	return pPrj
+}
+
+// CommandAdd Add a new command to the list of running commands
+func (xs *XdsServer) CommandAdd(cmdID string, data interface{}) error {
+	if xs.CommandGet(cmdID) != nil {
+		return fmt.Errorf("command id already exist")
+	}
+	xs.cmdList[cmdID] = data
+	return nil
+}
+
+// CommandDelete Delete a command from the command list
+func (xs *XdsServer) CommandDelete(cmdID string) error {
+	if xs.CommandGet(cmdID) == nil {
+		return fmt.Errorf("unknown command id")
+	}
+	delete(xs.cmdList, cmdID)
+	return nil
+}
+
+// CommandGet Retrieve a command data
+func (xs *XdsServer) CommandGet(cmdID string) interface{} {
+	d, exist := xs.cmdList[cmdID]
+	if exist {
+		return d
+	}
+	return nil
 }
 
 /***

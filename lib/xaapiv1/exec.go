@@ -16,6 +16,18 @@ type (
 		CmdTimeout      int      `json:"timeout"`         // command completion timeout in Second
 	}
 
+	// ExecResult JSON result of /exec command
+	ExecResult struct {
+		Status string `json:"status"` // status OK
+		CmdID  string `json:"cmdID"`  // command unique ID
+	}
+
+	// ExecSignalResult JSON result of /signal command
+	ExecSignalResult struct {
+		Status string `json:"status"` // status OK
+		CmdID  string `json:"cmdID"`  // command unique ID
+	}
+
 	// ExecInMsg Message used to received input characters (stdin)
 	ExecInMsg struct {
 		CmdID     string `json:"cmdID"`

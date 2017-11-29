@@ -8,9 +8,9 @@ import (
 	"os"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/urfave/cli"
 	common "github.com/iotbzh/xds-common/golib"
 	uuid "github.com/satori/go.uuid"
+	"github.com/urfave/cli"
 )
 
 // Config parameters (json format) of /config command
