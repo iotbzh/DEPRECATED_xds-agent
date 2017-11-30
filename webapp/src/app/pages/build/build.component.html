@@ -35,19 +35,19 @@
               <nb-action>
               </nb-action>
 
-              <nb-action (click)="clean()" [disabled]="!isSetupValid()">
+              <nb-action (click)="execCmd('clean')" [disabled]="!isSetupValid()">
                 <i class="fa fa-eraser"></i>
                 <span>Clean</span>
               </nb-action>
-              <nb-action (click)="preBuild()" [disabled]="!isSetupValid()">
+              <nb-action (click)="execCmd('prebuild')" [disabled]="!isSetupValid()">
                 <i class="nb-list"></i>
                 <span>Pre-Build</span>
               </nb-action>
-              <nb-action (click)="build()" [disabled]="!isSetupValid()">
+              <nb-action (click)="execCmd('build')" [disabled]="!isSetupValid()">
                 <i class="fa fa-wrench"></i>
                 <span>Build</span>
               </nb-action>
-              <nb-action (click)="populate()" [disabled]="!isSetupValid()">
+              <nb-action (click)="execCmd('populate')" [disabled]="!isSetupValid()">
                 <i class="fa fa-send"></i>
                 <span>Populate</span>
               </nb-action>

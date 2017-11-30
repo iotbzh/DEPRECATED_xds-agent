@@ -92,73 +92,53 @@ export class BuildComponent implements OnInit, AfterViewChecked {
     activeModal.componentInstance.modalHeader = 'Large Modal';
   }
 
-  clean() {
+  execCmd(cmdName: string) {
     if (!this.isSetupValid()) {
       return this.alertSvr.warning('Please select first a valid project.', true);
     }
-    this._exec(
-      this.curPrj.uiSettings.cmdClean,
-      this.curPrj.uiSettings.subpath,
-      [],
-      this.curPrj.uiSettings.envVars.join(' '));
-  }
 
-  preBuild() {
-    if (!this.isSetupValid()) {
-      return this.alertSvr.warning('Please select first a valid project.', true);
+    if (!this.curPrj.uiSettings) {
+      return this.alertSvr.warning('Invalid setting structure', true);
     }
-    this._exec(
-      this.curPrj.uiSettings.cmdPrebuild,
-      this.curPrj.uiSettings.subpath,
-      [],
-      this.curPrj.uiSettings.envVars.join(' '));
-  }
 
-  build() {
-    if (!this.isSetupValid()) {
-      return this.alertSvr.warning('Please select first a valid project.', true);
+    let cmd = '';
+    switch (cmdName) {
+      case 'clean':
+        cmd = this.curPrj.uiSettings.cmdClean;
+        break;
+      case 'prebuild':
+        cmd = this.curPrj.uiSettings.cmdPrebuild;
+        break;
+      case 'build':
+        cmd = this.curPrj.uiSettings.cmdBuild;
+        break;
+      case 'populate':
+        cmd = this.curPrj.uiSettings.cmdPopulate;
+        break;
+      case 'exec':
+        if (this.curPrj.uiSettings.cmdArgs instanceof Array)  {
+          cmd = this.curPrj.uiSettings.cmdArgs.join(' ');
+        } else {
+          cmd = this.curPrj.uiSettings.cmdArgs;
+        }
+        break;
+      default:
+        return this.alertSvr.warning('Unknown command name ' + cmdName);
     }
-    this._exec(
-      this.curPrj.uiSettings.cmdBuild,
-      this.curPrj.uiSettings.subpath,
-      [],
-      this.curPrj.uiSettings.envVars.join(' '),
-    );
-  }
 
-  populate() {
-    if (!this.isSetupValid()) {
-      return this.alertSvr.warning('Please select first a valid project.', true);
-    }
-    this._exec(
-      this.curPrj.uiSettings.cmdPopulate,
-      this.curPrj.uiSettings.subpath,
-      [], // args
-      this.curPrj.uiSettings.envVars.join(' '),
-    );
-  }
-
-  execCmd() {
-    if (!this.isSetupValid()) {
-      return this.alertSvr.warning('Please select first a valid project.', true);
-    }
-    this._exec(
-      this.curPrj.uiSettings.cmdArgs.join(' '),
-      this.curPrj.uiSettings.subpath,
-      [],
-      this.curPrj.uiSettings.envVars.join(' '),
-    );
-  }
-
-  private _exec(cmd: string, dir: string, args: string[], env: string) {
-    if (!this.isSetupValid()) {
-      return this.alertSvr.warning('No active project', true);
-    }
     const prjID = this.curPrj.id;
+    const dir = this.curPrj.uiSettings.subpath;
+    const args: string[] = [];
+    const sdkid = this.sdkSvr.getCurrentId();
+
+    let env = '';
+    if (this.curPrj.uiSettings.envVars instanceof Array) {
+      env = this.curPrj.uiSettings.envVars.join(' ');
+    } else {
+      env = this.curPrj.uiSettings.envVars;
+    }
 
     this.cmdOutput += this._outputHeader();
-
-    const sdkid = this.sdkSvr.getCurrentId();
 
     // Detect key=value in env string to build array of string
     const envArr = [];
