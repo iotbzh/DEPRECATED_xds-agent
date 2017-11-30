@@ -1,5 +1,9 @@
 # Makefile used to build XDS Agent
 
+# Application Name
+TARGET=xds-agent
+
+
 # Syncthing version to install
 SYNCTHING_VERSION = 0.14.38
 SYNCTHING_INOTIFY_VERSION = 0.8.7
@@ -8,7 +12,9 @@ SYNCTHING_INOTIFY_VERSION = 0.8.7
 # Retrieve git tag/commit to set version & sub-version strings
 GIT_DESC := $(shell git describe --always --tags)
 VERSION := $(firstword $(subst -, ,$(GIT_DESC)))
+ifeq (-,$(findstring -,$(GIT_DESC)))
 SUB_VERSION := $(subst $(VERSION)-,,$(GIT_DESC))
+endif
 ifeq ($(VERSION), )
 	VERSION := unknown-dev
 endif
@@ -27,7 +33,7 @@ endif
 HOST_GOOS=$(shell go env GOOS)
 HOST_GOARCH=$(shell go env GOARCH)
 ARCH=$(HOST_GOOS)-$(HOST_GOARCH)
-REPOPATH=github.com/iotbzh/xds-agent
+REPOPATH=github.com/iotbzh/$(TARGET)
 
 EXT=
 ifeq ($(HOST_GOOS), windows)
@@ -71,9 +77,9 @@ else
 endif
 
 ifeq ($(SUB_VERSION), )
-	PACKAGE_ZIPFILE := xds-agent_$(ARCH)-$(VERSION).zip
+	PACKAGE_ZIPFILE := $(TARGET)_$(ARCH)-$(VERSION).zip
 else
-	PACKAGE_ZIPFILE := xds-agent_$(ARCH)-$(VERSION)_$(SUB_VERSION).zip
+	PACKAGE_ZIPFILE := $(TARGET)_$(ARCH)-$(VERSION)_$(SUB_VERSION).zip
 endif
 
 
@@ -84,7 +90,7 @@ build: checkgover vendor xds webapp
 
 xds: scripts tools/syncthing/copytobin
 	@echo "### Build XDS agent (version $(VERSION), subversion $(SUB_VERSION)) - $(BUILD_MODE)";
-	@cd $(ROOT_SRCDIR); $(BUILD_ENV_FLAGS) go build $(VERBOSE_$(V)) -i -o $(LOCAL_BINDIR)/xds-agent$(EXT) -ldflags "$(GO_LDFLAGS) -X main.AppVersion=$(VERSION) -X main.AppSubVersion=$(SUB_VERSION)" -gcflags "$(GO_GCFLAGS)" .
+	@cd $(ROOT_SRCDIR); $(BUILD_ENV_FLAGS) go build $(VERBOSE_$(V)) -i -o $(LOCAL_BINDIR)/$(TARGET)$(EXT) -ldflags "$(GO_LDFLAGS) -X main.AppVersion=$(VERSION) -X main.AppSubVersion=$(SUB_VERSION)" -gcflags "$(GO_GCFLAGS)" .
 
 test: tools/glide
 	go test --race $(shell $(LOCAL_TOOLSDIR)/glide novendor)
@@ -96,10 +102,10 @@ fmt: tools/glide
 	go fmt $(shell $(LOCAL_TOOLSDIR)/glide novendor)
 
 run: build/xds tools/syncthing/copytobin
-	$(LOCAL_BINDIR)/xds-agent$(EXT) --log info -c agent-config.json.in
+	$(LOCAL_BINDIR)/$(TARGET)$(EXT) --log info -c agent-config.json.in
 
 debug: build/xds tools/syncthing/copytobin
-	$(LOCAL_BINDIR)/xds-agent$(EXT) --log debug -c agent-config.json.in
+	$(LOCAL_BINDIR)/$(TARGET)$(EXT) --log debug -c agent-config.json.in
 
 .PHONY: clean
 clean:
@@ -121,7 +127,7 @@ webapp/install:
 
 .PHONY: install
 install:
-	@test -e $(LOCAL_BINDIR)/xds-agent$(EXT) || { echo "Please execute first: make all\n"; exit 1; }
+	@test -e $(LOCAL_BINDIR)/$(TARGET)$(EXT) || { echo "Please execute first: make all\n"; exit 1; }
 	@test -e $(LOCAL_BINDIR)/syncthing$(EXT) -a -e $(LOCAL_BINDIR)/syncthing-inotify$(EXT) || { echo "Please execute first: make all\n"; exit 1; }
 	export DESTDIR=$(DESTDIR) && export DESTDIR_WWW=$(DESTDIR_WWW) && $(ROOT_SRCDIR)/scripts/install.sh
 
@@ -130,11 +136,11 @@ uninstall:
 	export DESTDIR=$(DESTDIR) && export DESTDIR_WWW=$(DESTDIR_WWW) && $(ROOT_SRCDIR)/scripts/install.sh uninstall
 
 package: clean tools/syncthing vendor build
-	@mkdir -p $(PACKAGE_DIR)/xds-agent/www $(PACKAGE_DIR)/scripts
-	@cp -a $(LOCAL_BINDIR)/* $(PACKAGE_DIR)/xds-agent/
-	@cp -a webapp/dist/* $(PACKAGE_DIR)/xds-agent/www/
-	@cp -r $(ROOT_SRCDIR)/conf.d $(ROOT_SRCDIR)/scripts $(PACKAGE_DIR)/xds-agent/
-	@cd $(PACKAGE_DIR) && zip -r $(ROOT_SRCDIR)/$(PACKAGE_ZIPFILE) ./xds-agent
+	@mkdir -p $(PACKAGE_DIR)/$(TARGET)/www $(PACKAGE_DIR)/scripts
+	@cp -a $(LOCAL_BINDIR)/* $(PACKAGE_DIR)/$(TARGET)/
+	@cp -a webapp/dist/* $(PACKAGE_DIR)/$(TARGET)/www/
+	@cp -r $(ROOT_SRCDIR)/conf.d $(ROOT_SRCDIR)/scripts $(PACKAGE_DIR)/$(TARGET)/
+	@cd $(PACKAGE_DIR) && zip -r $(ROOT_SRCDIR)/$(PACKAGE_ZIPFILE) ./$(TARGET)
 	@echo "### Package $(PACKAGE_ZIPFILE) has been successfuly built - $(BUILD_MODE)"
 
 .PHONY: package-all
