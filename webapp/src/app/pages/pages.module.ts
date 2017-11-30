@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { ToasterModule } from 'angular2-toaster';
 
 import { PagesComponent } from './pages.component';
+import { AboutModule } from './about/about.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { BuildModule } from './build/build.module';
 import { ProjectsModule } from './projects/projects.module';
@@ -19,6 +20,7 @@ const PAGES_COMPONENTS = [
   imports: [
     PagesRoutingModule,
     ThemeModule,
+    AboutModule,
     BuildModule,
     DashboardModule,
     ProjectsModule,

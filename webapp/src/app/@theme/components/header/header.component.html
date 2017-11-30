@@ -24,7 +24,8 @@
   </nb-action>
   <nb-action class="control-item" disabled icon="nb-notifications">
   </nb-action>
-  <nb-action icon="fa fa-question-circle-o">
+  <nb-action>
+      <nb-user [menu]="helpMenu" [name]="helpName" [showInitials]="true" [showName]="false" (menuClick)=helpClick($event)></nb-user>
   </nb-action>
 
   <!-- MODS_XDS

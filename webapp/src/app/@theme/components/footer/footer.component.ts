@@ -6,8 +6,6 @@ import { Component } from '@angular/core';
   template: `
     <span class="created-by">Created by
     <b><a href="http://iot.bzh" target="_blank">IoT.bzh</a></b> 2017
-    &nbsp;&nbsp;
-    <span style="font-size: small;">(powered by <a href="https://github.com/akveo/ngx-admin" target="_blank">akveo/ngx-admin</a>)</span>
     </span>
     <!-- MODS_XDS
     <div class="socials">
