@@ -29,10 +29,16 @@ export class ConfigXdsComponent {
     private alert: AlertService,
   ) {
     // FIXME support multiple servers
-    this.XdsConfigSvr.onCurServer().subscribe(svr => {
-      this.xdsServerUrl = svr.url;
-      this.server = Object.assign({}, svr);
-    });
+    this._updateServerCfg(this.XdsConfigSvr.getCurServer());
+    this.XdsConfigSvr.onCurServer().subscribe(svr => this._updateServerCfg(svr));
+  }
+
+  private _updateServerCfg(svr: IXDServerCfg) {
+    if (!svr || svr.url === '') {
+      return;
+    }
+    this.xdsServerUrl = svr.url;
+    this.server = Object.assign({}, svr);
   }
 
   isApplyBtnEnable(): boolean {
