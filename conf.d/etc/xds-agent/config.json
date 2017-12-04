@@ -1,10 +1,10 @@
 {
-    "httpPort": "8000",
+    "httpPort": "8800",
     "webAppDir": "./www",
     "logsDir": "${HOME}/.xds/agent/logs",
     "xdsServers": [
         {
-          "url": "http://localhost:8810"
+          "url": "http://localhost:8000"
         }
     ],
     "syncthing": {
