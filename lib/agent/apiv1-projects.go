@@ -56,7 +56,7 @@ func (s *APIService) addProject(c *gin.Context) {
 
 	s.Log.Debugln("Add project config: ", cfgArg)
 
-	newFld, err := s.projects.Add(cfgArg, s.sessions.GetID(c))
+	newFld, err := s.projects.Add(cfgArg, s.sessions.GetID(c), c.Request.Host)
 	if err != nil {
 		common.APIError(c, err.Error())
 		return

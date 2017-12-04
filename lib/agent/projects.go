@@ -20,12 +20,15 @@ package agent
 import (
 	"fmt"
 	"log"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/franciscocpg/reflectme"
 	"github.com/iotbzh/xds-agent/lib/syncthing"
 	"github.com/iotbzh/xds-agent/lib/xaapiv1"
+	common "github.com/iotbzh/xds-common/golib"
 	"github.com/iotbzh/xds-server/lib/xsapiv1"
 	"github.com/syncthing/syncthing/lib/sync"
 )
@@ -138,10 +141,28 @@ func (p *Projects) GetProjectArrUnsafe() []xaapiv1.ProjectConfig {
 }
 
 // Add adds a new folder
-func (p *Projects) Add(newF xaapiv1.ProjectConfig, fromSid string) (*xaapiv1.ProjectConfig, error) {
-	prj, err := p.createUpdate(newF, true, false)
+func (p *Projects) Add(newP xaapiv1.ProjectConfig, fromSid, requestURL string) (*xaapiv1.ProjectConfig, error) {
+	prj, err := p.createUpdate(newP, true, false)
 	if err != nil {
 		return prj, err
+	}
+
+	// Create xds-project.conf file
+	prjConfFile := filepath.Join(prj.ClientPath, "xds-project.conf")
+	if !common.Exists(prjConfFile) {
+		fd, err := os.OpenFile(prjConfFile, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0666)
+		if err != nil {
+			return prj, fmt.Errorf("Cannot create xds-project.conf: %v", err.Error())
+		}
+		fd.WriteString("# XDS project settings\n")
+		fd.WriteString("export XDS_AGENT_URL=" + requestURL + "\n")
+		fd.WriteString("export XDS_PROJECT_ID=" + prj.ID + "\n")
+		if prj.DefaultSdk != "" {
+			fd.WriteString("export XDS_SDK_ID=" + prj.DefaultSdk + "\n")
+		} else {
+			fd.WriteString("#export XDS_SDK_ID=???\n")
+		}
+		fd.Close()
 	}
 
 	// Notify client with event
