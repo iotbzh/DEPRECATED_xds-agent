@@ -68,6 +68,9 @@ func (s *APIService) setConfig(c *gin.Context) {
 
 	// Add new XDS Server
 	for _, svr := range cfgArg.Servers {
+		if svr.Connected && svr.ID != "" {
+			continue
+		}
 		cfg := xdsconfig.XDSServerConf{
 			ID:        svr.ID,
 			URL:       svr.URL,

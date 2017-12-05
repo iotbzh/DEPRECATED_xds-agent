@@ -96,11 +96,9 @@ func NewXdsServer(ctx *Context, conf xdsconfig.XDSServerConf) *XdsServer {
 
 // Close Free and close XDS Server connection
 func (xs *XdsServer) Close() error {
-	xs.Connected = false
+	err := xs._Disconnected()
 	xs.Disabled = true
-	xs.ioSock = nil
-	xs._NotifyState()
-	return nil
+	return err
 }
 
 // Connect Establish HTTP connection with XDS Server
@@ -125,7 +123,7 @@ func (xs *XdsServer) Connect() error {
 		time.Sleep(time.Second)
 	}
 	if retry == 0 {
-		// FIXME: re-use _reconnect to wait longer in background
+		// FIXME: re-use _Reconnect to wait longer in background
 		return fmt.Errorf("Connection to XDS Server failure")
 	}
 	if err != nil {
@@ -133,7 +131,7 @@ func (xs *XdsServer) Connect() error {
 	}
 
 	// Check HTTP connection and establish WS connection
-	err = xs._connect(false)
+	err = xs._Connect(false)
 
 	return err
 }
@@ -223,8 +221,7 @@ func (xs *XdsServer) PassthroughGet(url string) {
 		// Send Get request
 		if err := xs.client.Get(nURL, &data); err != nil {
 			if strings.Contains(err.Error(), "connection refused") {
-				xs.Connected = false
-				xs._NotifyState()
+				xs._Disconnected()
 			}
 			common.APIError(c, err.Error())
 			return
@@ -348,6 +345,7 @@ func (xs *XdsServer) EventOn(evName string, privData interface{}, f EventCB) (uu
 	}
 
 	xs.sockEvents[evName] = append(xs.sockEvents[evName], c)
+	xs.LogSillyf("XS EventOn: sockEvents[\"%s\"]: len %d", evName, len(xs.sockEvents[evName]))
 	return c.id, nil
 }
 
@@ -369,6 +367,7 @@ func (xs *XdsServer) EventOff(evName string, id uuid.UUID) error {
 			}
 		}
 	}
+	xs.LogSillyf("XS EventOff: sockEvents[\"%s\"]: len %d", evName, len(xs.sockEvents[evName]))
 	return nil
 }
 
@@ -502,9 +501,9 @@ func (xs *XdsServer) _CreateConnectHTTP() error {
 	return nil
 }
 
-//  Re-established connection
-func (xs *XdsServer) _reconnect() error {
-	err := xs._connect(true)
+// _Reconnect Re-established connection
+func (xs *XdsServer) _Reconnect() error {
+	err := xs._Connect(true)
 	if err == nil {
 		// Reload projects list for this server
 		err = xs.projects.Init(xs)
@@ -512,8 +511,8 @@ func (xs *XdsServer) _reconnect() error {
 	return err
 }
 
-//  Established HTTP and WS connection and retrieve XDSServer config
-func (xs *XdsServer) _connect(reConn bool) error {
+// _Connect Established HTTP and WS connection and retrieve XDSServer config
+func (xs *XdsServer) _Connect(reConn bool) error {
 
 	xdsCfg := xsapiv1.APIConfig{}
 	if err := xs.client.Get("/config", &xdsCfg); err != nil {
@@ -534,8 +533,7 @@ func (xs *XdsServer) _connect(reConn bool) error {
 
 	// Establish WS connection and register listen
 	if err := xs._SocketConnect(); err != nil {
-		xs.Connected = false
-		xs._NotifyState()
+		xs._Disconnected()
 		return err
 	}
 
@@ -544,7 +542,7 @@ func (xs *XdsServer) _connect(reConn bool) error {
 	return nil
 }
 
-// Create WebSocket (io.socket) connection
+// _SocketConnect Create WebSocket (io.socket) connection
 func (xs *XdsServer) _SocketConnect() error {
 
 	xs.Log.Infof("Connecting IO.socket for server %s (url %s)", xs.ID, xs.BaseURL)
@@ -575,8 +573,7 @@ func (xs *XdsServer) _SocketConnect() error {
 		if xs.CBOnDisconnect != nil {
 			xs.CBOnDisconnect(err)
 		}
-		xs.Connected = false
-		xs._NotifyState()
+		xs._Disconnected()
 
 		// Try to reconnect during 15min (or at least while not disabled)
 		go func() {
@@ -594,7 +591,12 @@ func (xs *XdsServer) _SocketConnect() error {
 				time.Sleep(time.Second * time.Duration(waitTime))
 				xs.Log.Infof("Try to reconnect to server %s (%d)", xs.BaseURL, count)
 
-				xs._reconnect()
+				err := xs._Reconnect()
+				if err != nil &&
+					!(strings.Contains(err.Error(), "dial tcp") && strings.Contains(err.Error(), "connection refused")) {
+					xs.Log.Errorf("ERROR while reconnecting: %v", err.Error())
+				}
+
 			}
 		}()
 	})
@@ -607,7 +609,19 @@ func (xs *XdsServer) _SocketConnect() error {
 	return nil
 }
 
-// Send event to notify changes
+// _Disconnected Set XDS Server as disconnected
+func (xs *XdsServer) _Disconnected() error {
+	// Clear all register events as socket is closed
+	for k := range xs.sockEvents {
+		delete(xs.sockEvents, k)
+	}
+	xs.Connected = false
+	xs.ioSock = nil
+	xs._NotifyState()
+	return nil
+}
+
+// _NotifyState Send event to notify changes
 func (xs *XdsServer) _NotifyState() {
 
 	evSts := xaapiv1.ServerCfg{

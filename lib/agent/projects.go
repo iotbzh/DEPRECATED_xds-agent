@@ -248,10 +248,12 @@ func (p *Projects) createUpdate(newF xaapiv1.ProjectConfig, create bool, initial
 
 	// Force sync after creation
 	// (need to defer to be sure that WS events will arrive after HTTP creation reply)
-	go func() {
-		time.Sleep(time.Millisecond * 500)
-		fld.Sync()
-	}()
+	if create {
+		go func() {
+			time.Sleep(time.Millisecond * 500)
+			fld.Sync()
+		}()
+	}
 
 	return newPrj, nil
 }
