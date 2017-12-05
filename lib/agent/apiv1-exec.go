@@ -81,9 +81,7 @@ func (s *APIService) execCmd(c *gin.Context) {
 	for _, evName := range evtInList {
 		evN := evName
 		err := (*sock).On(evN, func(stdin string) {
-			if s.LogLevelSilly {
-				s.Log.Debugf("EXEC EVENT IN (%s) <<%v>>", evN, stdin)
-			}
+			s.LogSillyf("EXEC EVENT IN (%s) <<%v>>", evN, stdin)
 			svr.EventEmit(evN, stdin)
 		})
 		if err != nil {
@@ -115,9 +113,7 @@ func (s *APIService) execCmd(c *gin.Context) {
 			// Add sessionID to event Data
 			reflectme.SetField(evData, "sessionID", sid)
 
-			if s.LogLevelSilly {
-				s.Log.Debugf("EXEC EVENT OUT (%s) <<%v>>", evN, evData)
-			}
+			s.LogSillyf("EXEC EVENT OUT (%s) <<%v>>", evN, evData)
 
 			// Forward event to Client/Dashboard
 			(*so).Emit(evN, evData)

@@ -40,7 +40,8 @@
     "iosk", "CIFS", "IPROJECT", "unregister", "conv", "PATHMAP", "nospace",
     "graphx", "Truthy", "darkviolet", "dwnl", "topnav", "leftbar", "urfave",
     "unmarshall", "sebd", "priv", "evts", "gdbserver", "tabset", "pageview",
-    "subpath", "prebuild", "reflectme", "franciscocpg", "xsapiv", "xaapiv"
+    "subpath", "prebuild", "reflectme", "franciscocpg", "xsapiv", "xaapiv",
+    "Sillyf"
   ],
   // codelyzer
   "tslint.rulesDirectory": "./webapp/node_modules/codelyzer",

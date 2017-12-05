@@ -95,9 +95,7 @@ func (e *Events) Emit(evName string, data interface{},fromSid string) error {
 		return fmt.Errorf("Unsupported event type")
 	}
 
-	if e.LogLevelSilly {
-		e.Log.Debugf("Emit Event %s: %v", evName, data)
-	}
+		e.LogSillyf("Emit Event %s: %v", evName, data)
 
 	firstErr = nil
 	evm := e.eventsMap[evName]

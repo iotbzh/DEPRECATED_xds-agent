@@ -225,10 +225,8 @@ func (s *Sessions) monitorSessMap() {
 			s.Log.Debugln("Stop monitorSessMap")
 			return
 		case <-time.After(sessionMonitorTime * time.Second):
-			if s.LogLevelSilly {
-				s.Log.Debugf("Sessions Map size: %d", len(s.sessMap))
-				s.Log.Debugf("Sessions Map : %v", s.sessMap)
-			}
+			s.LogSillyf("Sessions Map size: %d", len(s.sessMap))
+			s.LogSillyf("Sessions Map : %v", s.sessMap)
 
 			if len(s.sessMap) > maxSessions {
 				s.Log.Errorln("TOO MUCH sessions, cleanup old ones !")
@@ -237,9 +235,7 @@ func (s *Sessions) monitorSessMap() {
 			s.mutex.Lock()
 			for _, ss := range s.sessMap {
 				if ss.expireAt.Sub(time.Now()) < 0 {
-					if s.LogLevelSilly {
-						s.Log.Debugf("Delete expired session id: %s", ss.ID)
-					}
+					s.LogSillyf("Delete expired session id: %s", ss.ID)
 					delete(s.sessMap, ss.ID)
 				}
 			}
