@@ -155,7 +155,10 @@ package: clean tools/syncthing vendor build
 	@mkdir -p $(PACKAGE_DIR)/$(TARGET)/www $(PACKAGE_DIR)/scripts
 	@cp -a $(LOCAL_BINDIR)/* $(PACKAGE_DIR)/$(TARGET)/
 	@cp -a webapp/dist/* $(PACKAGE_DIR)/$(TARGET)/www/
-	@cp -r $(ROOT_SRCDIR)/conf.d $(ROOT_SRCDIR)/scripts $(PACKAGE_DIR)/$(TARGET)/
+ifneq ($(GOOS), windows)
+		@cp -r $(ROOT_SRCDIR)/conf.d $(ROOT_SRCDIR)/scripts $(PACKAGE_DIR)/$(TARGET)/
+endif
+	@cp $(ROOT_SRCDIR)/conf.d/etc/xds-agent/config.json $(PACKAGE_DIR)/$(TARGET)/config.json.in
 	@cd $(PACKAGE_DIR) && zip -r $(ROOT_SRCDIR)/$(PACKAGE_ZIPFILE) ./$(TARGET)
 	@echo "### Package $(PACKAGE_ZIPFILE) has been successfuly built - $(BUILD_MODE)"
 
