@@ -1,6 +1,6 @@
 {
     "httpPort": "8800",
-    "webAppDir": "./www",
+    "webAppDir": "${EXEPATH}/www",
     "logsDir": "${HOME}/.xds/agent/logs",
     "xdsServers": [
         {
