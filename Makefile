@@ -118,10 +118,10 @@ fmt: tools/glide
 	go fmt $(shell $(LOCAL_TOOLSDIR)/glide novendor)
 
 run: build/xds tools/syncthing/copytobin
-	$(LOCAL_BINDIR)/$(TARGET)$(EXT) --log info -c agent-config.json.in
+	$(LOCAL_BINDIR)/$(TARGET)$(EXT) --log info $(XDS_AGENT_RUN_ARGS)
 
 debug: build/xds tools/syncthing/copytobin
-	$(LOCAL_BINDIR)/$(TARGET)$(EXT) --log debug -c agent-config.json.in
+	$(LOCAL_BINDIR)/$(TARGET)$(EXT) --log debug $(XDS_AGENT_DEBUG_ARGS)
 
 .PHONY: clean
 clean:
@@ -158,7 +158,7 @@ package: clean tools/syncthing vendor build
 ifneq ($(GOOS), windows)
 		@cp -r $(ROOT_SRCDIR)/conf.d $(ROOT_SRCDIR)/scripts $(PACKAGE_DIR)/$(TARGET)/
 endif
-	@cp $(ROOT_SRCDIR)/conf.d/etc/xds-agent/config.json $(PACKAGE_DIR)/$(TARGET)/config.json.in
+	@cp $(ROOT_SRCDIR)/conf.d/etc/xds-agent/agent-config.json $(PACKAGE_DIR)/$(TARGET)/agent-config.json.in
 	@cd $(PACKAGE_DIR) && zip -r $(ROOT_SRCDIR)/$(PACKAGE_ZIPFILE) ./$(TARGET)
 	@echo "### Package $(PACKAGE_ZIPFILE) has been successfuly built - $(BUILD_MODE)"
 
