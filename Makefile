@@ -158,7 +158,7 @@ package: clean tools/syncthing vendor build
 ifneq ($(GOOS), windows)
 		@cp -r $(ROOT_SRCDIR)/conf.d $(ROOT_SRCDIR)/scripts $(PACKAGE_DIR)/$(TARGET)/
 endif
-	@cp $(ROOT_SRCDIR)/conf.d/etc/xds-agent/agent-config.json $(PACKAGE_DIR)/$(TARGET)/agent-config.json.in
+	@cp $(ROOT_SRCDIR)/conf.d/etc/xds/agent/agent-config.json $(PACKAGE_DIR)/$(TARGET)/agent-config.json.in
 	@cd $(PACKAGE_DIR) && zip -r $(ROOT_SRCDIR)/$(PACKAGE_ZIPFILE) ./$(TARGET)
 	@echo "### Package $(PACKAGE_ZIPFILE) has been successfuly built - $(BUILD_MODE)"
 

@@ -28,7 +28,7 @@ install() {
     mkdir -p "${DESTDIR}" && cp "${ROOT_SRCDIR}/bin/*" "${DESTDIR}" || exit 1
     mkdir -p "${DESTDIR_WWW}" && cp -a "${ROOT_SRCDIR}/webapp/dist/*" "${DESTDIR_WWW}" || exit 1
 
-    cp "${ROOT_SRCDIR}/conf.d/etc/xds-agent" /etc/ || exit 1
+    cp -a "${ROOT_SRCDIR}/conf.d/etc/xds" /etc/ || exit 1
     cp "${ROOT_SRCDIR}/conf.d/etc/default/xds-agent" /etc/default/ || exit 1
 
     FILE=/etc/profile.d/xds-agent.sh
