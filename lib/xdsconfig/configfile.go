@@ -59,6 +59,9 @@ type FileConfig struct {
 
 func readGlobalConfig(c *Config, confFile string) error {
 
+	var fd *os.File
+	var fCfg = FileConfig{}
+
 	searchIn := make([]string, 0, 3)
 	if confFile != "" {
 		searchIn = append(searchIn, confFile)
@@ -78,7 +81,8 @@ func readGlobalConfig(c *Config, confFile string) error {
 	}
 	if cFile == nil {
 		c.Log.Infof("No config file found")
-		return nil
+		// always resolved env vars even if no config file found!
+		goto resVars
 	}
 
 	c.Log.Infof("Use config file: %s", *cFile)
@@ -87,11 +91,14 @@ func readGlobalConfig(c *Config, confFile string) error {
 	// bind with flags (command line options)
 	// see https://github.com/spf13/viper#working-with-flags
 
-	fd, _ := os.Open(*cFile)
-	defer fd.Close()
+	fd, _ = os.Open(*cFile)
+	defer func() {
+		if fd != nil {
+			fd.Close()
+		}
+	}()
 
 	// Decode config file content and save it in a first variable
-	fCfg := FileConfig{}
 	if err := json.NewDecoder(fd).Decode(&fCfg); err != nil {
 		return err
 	}
@@ -106,6 +113,7 @@ func readGlobalConfig(c *Config, confFile string) error {
 	}
 
 	// Support environment variables (IOW ${MY_ENV_VAR} syntax) in agent-config.json
+resVars:
 	vars := []*string{
 		&c.FileConf.LogsDir,
 		&c.FileConf.WebAppDir,
