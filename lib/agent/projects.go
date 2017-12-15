@@ -246,14 +246,12 @@ func (p *Projects) createUpdate(newF xaapiv1.ProjectConfig, create bool, initial
 	// Add to folders list
 	p.projects[newPrj.ID] = &fld
 
-	// Force sync after creation
+	// Force sync to get an initial sync status
 	// (need to defer to be sure that WS events will arrive after HTTP creation reply)
-	if create {
-		go func() {
-			time.Sleep(time.Millisecond * 500)
-			fld.Sync()
-		}()
-	}
+	go func() {
+		time.Sleep(time.Millisecond * 500)
+		fld.Sync()
+	}()
 
 	return newPrj, nil
 }

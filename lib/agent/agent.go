@@ -132,6 +132,9 @@ func (ctx *Context) Run() (int, error) {
 		ctx._logPrint("Logging file for HTTP requests: %s\n", logFileHTTPReq)
 	}
 
+	// Create events management
+	ctx.events = NewEvents(ctx)
+
 	// Create syncthing instance when section "syncthing" is present in agent-config.json
 	if ctx.Config.FileConf.SThgConf != nil {
 		ctx.SThg = st.NewSyncThing(ctx.Config, ctx.Log)
@@ -185,9 +188,6 @@ func (ctx *Context) Run() (int, error) {
 
 	// Sessions manager
 	ctx.sessions = NewClientSessions(ctx, cookieMaxAge)
-
-	// Create events management
-	ctx.events = NewEvents(ctx)
 
 	// Create projects management
 	ctx.projects = NewProjects(ctx, ctx.SThg)

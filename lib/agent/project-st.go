@@ -18,6 +18,7 @@
 package agent
 
 import (
+	"encoding/json"
 	"fmt"
 
 	st "github.com/iotbzh/xds-agent/lib/syncthing"
@@ -105,8 +106,8 @@ func (p *STProject) Setup(prj xaapiv1.ProjectConfig) (*xaapiv1.ProjectConfig, er
 
 	// Register events to update folder status
 	// Register to XDS Server events
-	p.server.EventOn("event:folder-state-change", "", p._cbServerFolderChanged)
-	if err := p.server.EventRegister("folder-state-change", svrPrj.ID); err != nil {
+	p.server.EventOn(xsapiv1.EVTFolderStateChange, "", p._cbServerFolderChanged)
+	if err := p.server.EventRegister(xsapiv1.EVTFolderStateChange, svrPrj.ID); err != nil {
 		p.Log.Warningf("XDS Server EventRegister failed: %v", err)
 		return svrPrj, err
 	}
@@ -164,18 +165,32 @@ func (p *STProject) IsInSync() (bool, error) {
 // callback use to update (XDS Server) folder IsInSync status
 
 func (p *STProject) _cbServerFolderChanged(pData interface{}, data interface{}) error {
-	evt := data.(xsapiv1.EventMsg)
+	evt := xsapiv1.EventMsg{}
+	d, err := json.Marshal(data)
+	if err != nil {
+		p.Log.Errorf("Cannot marshal XDS Server event folder-change err=%v", err)
+		return err
+	}
+	if err = json.Unmarshal(d, &evt); err != nil {
+		p.Log.Errorf("Cannot unmarshal XDS Server event folder-change err=%v", err)
+		return err
+	}
+
+	fld, err := evt.DecodeFolderConfig()
+	if err != nil {
+		p.Log.Errorf("Cannot decode FolderChanged event: %v", data)
+	}
 
 	// Only process event that concerns this project/folder ID
-	if p.folder.ID != evt.Folder.ID {
+	if p.folder.ID != fld.ID {
 		return nil
 	}
 
-	if evt.Folder.IsInSync != p.folder.DataCloudSync.STSvrIsInSync ||
-		evt.Folder.Status != p.folder.DataCloudSync.STSvrStatus {
+	if fld.IsInSync != p.folder.DataCloudSync.STSvrIsInSync ||
+		fld.Status != p.folder.DataCloudSync.STSvrStatus {
 
-		p.folder.DataCloudSync.STSvrIsInSync = evt.Folder.IsInSync
-		p.folder.DataCloudSync.STSvrStatus = evt.Folder.Status
+		p.folder.DataCloudSync.STSvrIsInSync = fld.IsInSync
+		p.folder.DataCloudSync.STSvrStatus = fld.Status
 
 		if err := p.events.Emit(xaapiv1.EVTProjectChange, p.server.FolderToProject(*p.folder), ""); err != nil {
 			p.Log.Warningf("Cannot notify project change (from server): %v", err)

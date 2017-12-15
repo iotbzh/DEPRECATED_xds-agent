@@ -307,10 +307,7 @@ func (xs *XdsServer) EventOn(evName string, privData interface{}, f EventCB) (uu
 		// Register listener only the first time
 		evn := evName
 
-		// FIXME: use generic type: data interface{} instead of data xsapiv1.EventMsg
-		var err error
-		if evName == "event:folder-state-change" {
-			err = xs.ioSock.On(evn, func(data xsapiv1.EventMsg) error {
+		err := xs.ioSock.On(evn, func(data interface{}) error {
 				xs.sockEventsLock.Lock()
 				sEvts := make([]*caller, len(xs.sockEvents[evn]))
 				copy(sEvts, xs.sockEvents[evn])
@@ -320,18 +317,6 @@ func (xs *XdsServer) EventOn(evName string, privData interface{}, f EventCB) (uu
 				}
 				return nil
 			})
-		} else {
-			err = xs.ioSock.On(evn, func(data interface{}) error {
-				xs.sockEventsLock.Lock()
-				sEvts := make([]*caller, len(xs.sockEvents[evn]))
-				copy(sEvts, xs.sockEvents[evn])
-				xs.sockEventsLock.Unlock()
-				for _, c := range sEvts {
-					c.Func(c.PrivateData, data)
-				}
-				return nil
-			})
-		}
 		if err != nil {
 			return uuid.Nil, err
 		}
