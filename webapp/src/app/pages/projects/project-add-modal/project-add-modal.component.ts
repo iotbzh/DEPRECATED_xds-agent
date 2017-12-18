@@ -34,7 +34,6 @@ import { XDSConfigService } from '../../../@core-xds/services/xds-config.service
 @Component({
   selector: 'xds-project-add-modal',
   templateUrl: 'project-add-modal.component.html',
-  styleUrls: ['project-add-modal.component.scss'],
 })
 export class ProjectAddModalComponent implements OnInit {
   // @Input('server-id') serverID: string;

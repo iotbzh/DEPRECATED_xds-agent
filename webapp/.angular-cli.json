@@ -30,10 +30,7 @@
         "./app/@theme/styles/styles.scss"
       ],
       "scripts": [
-        "../node_modules/pace-js/pace.min.js",
-        "./assets/vendors/echarts.min.js",
-        "./assets/vendors/echarts.world.min.js",
-        "../node_modules/chart.js/dist/Chart.min.js"
+        "../node_modules/pace-js/pace.min.js"
       ],
       "environmentSource": "environments/environment.ts",
       "environments": {
