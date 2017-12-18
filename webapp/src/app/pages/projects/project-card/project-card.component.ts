@@ -19,7 +19,8 @@
 import { Component, Input, Pipe, PipeTransform } from '@angular/core';
 import { ProjectService, IProject, ProjectType, ProjectTypeEnum } from '../../../@core-xds/services/project.service';
 import { AlertService } from '../../../@core-xds/services/alert.service';
-
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { ConfirmModalComponent, EType } from '../../confirm/confirm-modal/confirm-modal.component';
 
 @Component({
   selector: 'xds-project-card',
@@ -36,14 +37,34 @@ export class ProjectCardComponent {
   constructor(
     private alert: AlertService,
     private projectSvr: ProjectService,
+    private modalService: NgbModal,
   ) {
   }
 
   delete(prj: IProject) {
-    this.projectSvr.delete(prj).subscribe(
-      res => { },
-      err => this.alert.error('ERROR delete: ' + err),
-    );
+
+    const modal = this.modalService.open(ConfirmModalComponent, {
+      size: 'lg',
+      backdrop: 'static',
+      container: 'nb-layout',
+    });
+    modal.componentInstance.title = 'Confirm SDK deletion';
+    modal.componentInstance.type = EType.YesNo;
+    modal.componentInstance.question = `
+      Do you <b>permanently delete '` + prj.label + `'</b> project ?
+      <br><br>
+      <i><small>(Project ID: ` + prj.id + ` )</small></i>`;
+
+    modal.result
+      .then(res => {
+        if (res === 'yes') {
+          this.projectSvr.delete(prj).subscribe(
+            r => { },
+            err => this.alert.error('ERROR delete: ' + err),
+          );
+        }
+      });
+
   }
 
   sync(prj: IProject) {
