@@ -21,20 +21,23 @@ import { ThemeModule } from '../../@theme/theme.module';
 
 import { SdksComponent } from './sdks.component';
 import { SdkCardComponent } from './sdk-card/sdk-card.component';
-// import { SdkAddModalComponent } from './sdk-add-modal/sdk-add-modal.component';
-
+import { SdkManagementComponent } from './sdk-management/sdk-management.component';
+import { SdkInstallComponent } from './sdk-management/sdk-install.component';
+import { Ng2SmartTableModule } from 'ng2-smart-table';
 
 @NgModule({
   imports: [
     ThemeModule,
+    Ng2SmartTableModule,
   ],
   declarations: [
     SdksComponent,
     SdkCardComponent,
-    // SdkAddModalComponent,
+    SdkManagementComponent,
+    SdkInstallComponent,
   ],
   entryComponents: [
-    // SdkAddModalComponent,
+    SdkInstallComponent,
   ],
 })
 export class SdksModule { }

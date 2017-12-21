@@ -45,6 +45,8 @@ const (
 	EVTProjectAdd    = EventTypePrefix + "project-add"          // type EventMsg with Data type xaapiv1.ProjectConfig
 	EVTProjectDelete = EventTypePrefix + "project-delete"       // type EventMsg with Data type xaapiv1.ProjectConfig
 	EVTProjectChange = EventTypePrefix + "project-state-change" // type EventMsg with Data type xaapiv1.ProjectConfig
+	EVTSDKInstall    = EventTypePrefix + "sdk-install"          // type EventMsg with Data type xaapiv1.SDKManagementMsg
+	EVTSDKRemove     = EventTypePrefix + "sdk-remove"           // type EventMsg with Data type xaapiv1.SDKManagementMsg
 )
 
 // EVTAllList List of all supported events
@@ -53,6 +55,8 @@ var EVTAllList = []string{
 	EVTProjectAdd,
 	EVTProjectDelete,
 	EVTProjectChange,
+	EVTSDKInstall,
+	EVTSDKRemove,
 }
 
 // EventMsg Event message send over Websocket, data format depend to Type (see DecodeXXX function)
@@ -91,4 +95,21 @@ func (e *EventMsg) DecodeProjectConfig() (ProjectConfig, error) {
 		err = fmt.Errorf("Invalid type")
 	}
 	return p, err
+}
+
+// DecodeSDKMsg Helper to decode Data field type SDKManagementMsg
+func (e *EventMsg) DecodeSDKMsg() (SDKManagementMsg, error) {
+	var err error
+	s := SDKManagementMsg{}
+	switch e.Type {
+	case EVTSDKInstall, EVTSDKRemove:
+		d := []byte{}
+		d, err = json.Marshal(e.Data)
+		if err == nil {
+			err = json.Unmarshal(d, &s)
+		}
+	default:
+		err = fmt.Errorf("Invalid type")
+	}
+	return s, err
 }

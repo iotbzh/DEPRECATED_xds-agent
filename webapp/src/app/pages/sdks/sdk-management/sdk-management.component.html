@@ -1,0 +1,26 @@
+<div class="row">
+  <div class="col-12">
+    <nb-card-body>
+      <div class="col-9">
+        <nb-actions size="medium">
+          <nb-action>
+            <a href="#/pages/sdks" class="btn" role="Button">
+            <i id="hack-i" class="fa fa-list-alt"></i>
+            <span id="hack-span">Switch to basic SDKs view</span>
+        </a>
+          </nb-action>
+        </nb-actions>
+      </div>
+    </nb-card-body>
+  </div>
+
+  <nb-card>
+    <nb-card-header>
+      <span>SDKs Management</span>
+    </nb-card-header>
+
+    <nb-card-body>
+      <ng2-smart-table [settings]="settings" [source]="sdks" (custom)="onCustom($event)"></ng2-smart-table>
+    </nb-card-body>
+  </nb-card>
+</div>

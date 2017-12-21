@@ -20,6 +20,8 @@ import { Component, Input, Pipe, PipeTransform } from '@angular/core';
 import { SdkService, ISdk } from '../../../@core-xds/services/sdk.service';
 import { AlertService } from '../../../@core-xds/services/alert.service';
 
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { ConfirmModalComponent, EType } from '../../confirm/confirm-modal/confirm-modal.component';
 
 @Component({
   selector: 'xds-sdk-card',
@@ -36,18 +38,32 @@ export class SdkCardComponent {
   constructor(
     private alert: AlertService,
     private sdkSvr: SdkService,
+    private modalService: NgbModal,
   ) {
   }
 
-  labelGet(sdk: ISdk) {
-    return sdk.profile + '-' + sdk.arch + '-' + sdk.version;
-  }
+  remove(sdk: ISdk) {
+    const modal = this.modalService.open(ConfirmModalComponent, {
+      size: 'lg',
+      backdrop: 'static',
+      container: 'nb-layout',
+    });
+    modal.componentInstance.title = 'Confirm SDK deletion';
+    modal.componentInstance.type = EType.YesNo;
+    modal.componentInstance.question = `
+    Do you <b>permanently remove '` + sdk.name + `'</b> SDK ?
+    <br><br>
+    <i><small>(SDK ID: ` + sdk.id + ` )</small></i>`;
 
-  delete(sdk: ISdk) {
-    this.sdkSvr.delete(sdk).subscribe(
-      res => { },
-      err => this.alert.error('ERROR delete: ' + err),
-    );
+    modal.result
+      .then(res => {
+        if (res === 'yes') {
+          this.sdkSvr.remove(sdk).subscribe(
+            r => { },
+            err => this.alert.error(err),
+          );
+        }
+      });
   }
 }
 

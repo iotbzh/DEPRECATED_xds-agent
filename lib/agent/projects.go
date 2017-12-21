@@ -75,6 +75,11 @@ func (p *Projects) Init(server *XdsServer) error {
 		for _, prj := range xFlds {
 			newP := svr.FolderToProject(prj)
 			if _, err := p.createUpdate(newP, false, true); err != nil {
+				// Don't consider that as an error (allow support config without CloudSync support)
+				if p.Context.SThg == nil && strings.Contains(err.Error(), "Server doesn't support project type CloudSync") {
+					continue
+				}
+
 				errMsg += "Error while creating project id " + prj.ID + ": " + err.Error() + "\n "
 				continue
 			}

@@ -21,7 +21,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"strings"
 	"sync"
@@ -239,8 +238,11 @@ func (xs *XdsServer) PassthroughPost(url string) {
 	}
 
 	xs.apiRouter.POST(url, func(c *gin.Context) {
-		bodyReq := []byte{}
-		n, err := c.Request.Body.Read(bodyReq)
+		var err error
+		var data interface{}
+
+		// Get raw body
+		body, err := c.GetRawData()
 		if err != nil {
 			common.APIError(c, err.Error())
 			return
@@ -253,34 +255,80 @@ func (xs *XdsServer) PassthroughPost(url string) {
 		}
 
 		// Send Post request
-		body, err := json.Marshal(bodyReq[:n])
-		if err != nil {
-			common.APIError(c, err.Error())
-			return
-		}
-
 		response, err := xs.client.HTTPPostWithRes(nURL, string(body))
 		if err != nil {
-			common.APIError(c, err.Error())
+			goto httpError
+		}
+		if response.StatusCode != 200 {
+			err = fmt.Errorf(response.Status)
 			return
+		}
+		err = json.Unmarshal(xs.client.ResponseToBArray(response), &data)
+		if err != nil {
+			goto httpError
 		}
 
-		bodyRes, err := ioutil.ReadAll(response.Body)
+		c.JSON(http.StatusOK, data)
+		return
+
+		/* Handle error case */
+	httpError:
+		if strings.Contains(err.Error(), "connection refused") {
+			xs._Disconnected()
+		}
+		common.APIError(c, err.Error())
+	})
+}
+
+// PassthroughDelete Used to declare a route that sends directly a Delete request to XDS Server
+func (xs *XdsServer) PassthroughDelete(url string) {
+	if xs.apiRouter == nil {
+		xs.Log.Errorf("apiRouter not set !")
+		return
+	}
+
+	xs.apiRouter.DELETE(url, func(c *gin.Context) {
+		var err error
+		var data interface{}
+
+		// Take care of param (eg. id in /projects/:id)
+		nURL := url
+		if strings.Contains(url, ":") {
+			nURL = strings.TrimPrefix(c.Request.URL.Path, xs.APIURL)
+		}
+
+		// Send Post request
+		response, err := xs.client.HTTPDeleteWithRes(nURL)
 		if err != nil {
-			common.APIError(c, "Cannot read response body")
+			goto httpError
+		}
+		if response.StatusCode != 200 {
+			err = fmt.Errorf(response.Status)
 			return
 		}
-		c.JSON(http.StatusOK, string(bodyRes))
+		err = json.Unmarshal(xs.client.ResponseToBArray(response), &data)
+		if err != nil {
+			goto httpError
+		}
+
+		c.JSON(http.StatusOK, data)
+		return
+
+		/* Handle error case */
+	httpError:
+		if strings.Contains(err.Error(), "connection refused") {
+			xs._Disconnected()
+		}
+		common.APIError(c, err.Error())
 	})
 }
 
 // EventRegister Post a request to register to an XdsServer event
-func (xs *XdsServer) EventRegister(evName string, id string) error {
-	return xs.client.Post(
-		"/events/register",
+func (xs *XdsServer) EventRegister(evName string, filter string) error {
+	return xs.client.Post("/events/register",
 		xsapiv1.EventRegisterArgs{
-			Name:      evName,
-			ProjectID: id,
+			Name:   evName,
+			Filter: filter,
 		},
 		nil)
 }
@@ -308,15 +356,15 @@ func (xs *XdsServer) EventOn(evName string, privData interface{}, f EventCB) (uu
 		evn := evName
 
 		err := xs.ioSock.On(evn, func(data interface{}) error {
-				xs.sockEventsLock.Lock()
-				sEvts := make([]*caller, len(xs.sockEvents[evn]))
-				copy(sEvts, xs.sockEvents[evn])
-				xs.sockEventsLock.Unlock()
-				for _, c := range sEvts {
-					c.Func(c.PrivateData, data)
-				}
-				return nil
-			})
+			xs.sockEventsLock.Lock()
+			sEvts := make([]*caller, len(xs.sockEvents[evn]))
+			copy(sEvts, xs.sockEvents[evn])
+			xs.sockEventsLock.Unlock()
+			for _, c := range sEvts {
+				c.Func(c.PrivateData, data)
+			}
+			return nil
+		})
 		if err != nil {
 			return uuid.Nil, err
 		}
@@ -492,6 +540,10 @@ func (xs *XdsServer) _Reconnect() error {
 	if err == nil {
 		// Reload projects list for this server
 		err = xs.projects.Init(xs)
+	}
+	if err == nil {
+		// Register again to all events
+		err = xs.EventRegister(xsapiv1.EVTAll, "")
 	}
 	return err
 }

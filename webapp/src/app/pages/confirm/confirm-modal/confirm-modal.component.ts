@@ -24,6 +24,7 @@ export enum EType {
   YesNo = 1,
   OKCancel,
   OK,
+  Cancel,
 }
 
 @Component({
@@ -76,6 +77,10 @@ export class ConfirmModalComponent implements OnInit {
       case EType.OK:
         this.textBtn = [ 'OK', '', '' ];
         break;
+
+      case EType.Cancel:
+        this.textBtn = [ '', 'Cancel', '' ];
+      break;
 
       case EType.OKCancel:
         this.textBtn = [ 'OK', 'Cancel', '' ];

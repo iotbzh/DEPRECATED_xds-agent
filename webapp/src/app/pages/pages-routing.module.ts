@@ -23,6 +23,7 @@ import { PagesComponent } from './pages.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { ProjectsComponent } from './projects/projects.component';
 import { SdksComponent } from './sdks/sdks.component';
+import { SdkManagementComponent } from './sdks/sdk-management/sdk-management.component';
 import { BuildComponent } from './build/build.component';
 
 const routes: Routes = [{
@@ -37,6 +38,9 @@ const routes: Routes = [{
   }, {
     path: 'sdks',
     component: SdksComponent,
+  }, {
+    path: 'sdks/management',
+    component: SdkManagementComponent,
   }, {
     path: 'build',
     component: BuildComponent,

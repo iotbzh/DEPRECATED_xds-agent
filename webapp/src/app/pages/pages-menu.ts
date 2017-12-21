@@ -56,6 +56,14 @@ export const MENU_ITEMS: NbMenuItem[] = [
     title: 'SDKs',
     icon: 'fa fa-file-archive-o',
     link: '/pages/sdks',
+    /*
+    children: [
+      {
+        title: 'SDKs Management',
+        link: '/pages/sdks/management',
+      },
+    ],
+    */
   },
   {
     title: 'Boards',

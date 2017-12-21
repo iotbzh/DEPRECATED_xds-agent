@@ -106,9 +106,8 @@ func (p *STProject) Setup(prj xaapiv1.ProjectConfig) (*xaapiv1.ProjectConfig, er
 
 	// Register events to update folder status
 	// Register to XDS Server events
-	p.server.EventOn(xsapiv1.EVTFolderStateChange, "", p._cbServerFolderChanged)
-	if err := p.server.EventRegister(xsapiv1.EVTFolderStateChange, svrPrj.ID); err != nil {
-		p.Log.Warningf("XDS Server EventRegister failed: %v", err)
+	if _, err := p.server.EventOn(xsapiv1.EVTFolderStateChange, "", p._cbServerFolderChanged); err != nil {
+		p.Log.Errorf("XDS Server EventOn '%s' failed: %v", xsapiv1.EVTFolderStateChange, err)
 		return svrPrj, err
 	}
 

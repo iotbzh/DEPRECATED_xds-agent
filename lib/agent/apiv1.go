@@ -23,6 +23,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/iotbzh/xds-agent/lib/xdsconfig"
+	"github.com/iotbzh/xds-server/lib/xsapiv1"
 )
 
 const apiBaseURL = "/api/v1"
@@ -129,9 +130,19 @@ func (s *APIService) AddXdsServer(cfg xdsconfig.XDSServerConf) (*XdsServer, erro
 	// Add to map
 	s.xdsServers[svr.ID] = svr
 
+	// Register event forwarder
+	s.sdksEventsForwardInit(svr)
+
 	// Load projects
 	if err == nil && svr.Connected {
 		err = s.projects.Init(svr)
+	}
+
+	// Registered to all events
+	if err == nil && svr.Connected {
+		if err = svr.EventRegister(xsapiv1.EVTAll, ""); err != nil {
+			s.Log.Errorf("XDS Server %v - register all events error: %v", svr.ID, err)
+		}
 	}
 
 	return svr, err

@@ -20,7 +20,6 @@ import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-// import { SdkAddModalComponent } from './sdk-add-modal/sdk-add-modal.component';
 
 import { SdkService, ISdk } from '../../@core-xds/services/sdk.service';
 
@@ -44,10 +43,7 @@ export class SdksComponent implements OnInit {
     this.sdks$ = this.sdkSvr.Sdks$;
   }
 
-  add() {
-    /* SEB TODO
-    const activeModal = this.modalService.open(SdkAddModalComponent, { size: 'lg', container: 'nb-layout' });
-    activeModal.componentInstance.modalHeader = 'Large Modal';
-    */
+  isVisible(sdk: ISdk) {
+    return sdk.status === 'Installed' || sdk.status === 'Installing';
   }
 }

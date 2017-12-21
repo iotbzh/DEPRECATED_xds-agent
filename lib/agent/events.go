@@ -88,14 +88,14 @@ func (e *Events) UnRegister(evName, sessionID string) error {
 }
 
 // Emit Used to manually emit an event
-func (e *Events) Emit(evName string, data interface{},fromSid string) error {
+func (e *Events) Emit(evName string, data interface{}, fromSid string) error {
 	var firstErr error
 
 	if _, ok := e.eventsMap[evName]; !ok {
 		return fmt.Errorf("Unsupported event type")
 	}
 
-		e.LogSillyf("Emit Event %s: %v", evName, data)
+	e.LogSillyf("Emit Event %s: %v", evName, data)
 
 	firstErr = nil
 	evm := e.eventsMap[evName]
@@ -113,7 +113,7 @@ func (e *Events) Emit(evName string, data interface{},fromSid string) error {
 			Type:          evName,
 			Data:          data,
 		}
-		e.Log.Debugf("Emit Event %s: %v", evName, sid)
+
 		if err := (*so).Emit(evName, msg); err != nil {
 			e.Log.Errorf("WS Emit %v error : %v", evName, err)
 			if firstErr == nil {

@@ -4,10 +4,10 @@
       <div class="col-9">
         <nb-actions size="medium">
           <nb-action>
-            <button (click)="add()">
-                <i class="nb-plus"></i>
-                <span>Add new SDK</span>
-            </button>
+            <a href="#/pages/sdks/management"  class="btn" role="Button">
+                <i class="fa fa-wrench"></i>
+                <span>SDKs Management</span>
+            </a>
           </nb-action>
         </nb-actions>
       </div>
@@ -20,7 +20,10 @@
       </div>
     </nb-card-body>
   </div>
-  <div class="col-md-6 col-lg-6" *ngFor="let sdk of (sdks$ | async)">
-    <xds-sdk-card [sdk]="sdk"></xds-sdk-card>
-  </div>
+
+  <ng-container *ngFor="let sdk of (sdks$ | async)">
+    <div class="col-md-6 col-lg-6" *ngIf="isVisible(sdk)">
+      <xds-sdk-card [sdk]="sdk"></xds-sdk-card>
+    </div>
+  </ng-container>
 </div>

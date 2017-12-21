@@ -16,7 +16,7 @@
 * limitations under the License.
 */
 
-import { Component, Input, ViewChild, OnInit } from '@angular/core';
+import { Component, ViewEncapsulation, Input, OnInit } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { FormControl, FormGroup, Validators, ValidationErrors, FormBuilder, ValidatorFn, AbstractControl } from '@angular/forms';
@@ -34,6 +34,13 @@ import { XDSConfigService } from '../../../@core-xds/services/xds-config.service
 @Component({
   selector: 'xds-project-add-modal',
   templateUrl: 'project-add-modal.component.html',
+  encapsulation: ViewEncapsulation.None,
+  styles: [`
+    .modal-xxl .modal-lg {
+      width: 90%;
+      max-width:1200px;
+    }
+  `],
 })
 export class ProjectAddModalComponent implements OnInit {
   // @Input('server-id') serverID: string;

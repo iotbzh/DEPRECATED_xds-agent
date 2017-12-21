@@ -26,7 +26,7 @@ import:
   subpackages:
   - golib/common
 - package: github.com/iotbzh/xds-server
-  version: v1.0.0-rc1
+  version: v1.0.0-rc2
   subpackages:
   - lib/xsapiv1
 - package: github.com/franciscocpg/reflectme

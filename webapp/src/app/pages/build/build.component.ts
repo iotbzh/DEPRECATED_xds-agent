@@ -105,9 +105,10 @@ export class BuildComponent implements OnInit, AfterViewChecked {
     if (!this.isSetupValid()) {
       return this.alertSvr.warning('Please select first a valid project.', true);
     }
-
-    const activeModal = this.modalService.open(BuildSettingsModalComponent, { size: 'lg', container: 'nb-layout' });
-    activeModal.componentInstance.modalHeader = 'Large Modal';
+    const modal = this.modalService.open(
+      BuildSettingsModalComponent,
+      { size: 'lg', container: 'nb-layout' },
+    );
   }
 
   execCmd(cmdName: string) {
@@ -134,7 +135,7 @@ export class BuildComponent implements OnInit, AfterViewChecked {
         cmd = this.curPrj.uiSettings.cmdPopulate;
         break;
       case 'exec':
-        if (this.curPrj.uiSettings.cmdArgs instanceof Array)  {
+        if (this.curPrj.uiSettings.cmdArgs instanceof Array) {
           cmd = this.curPrj.uiSettings.cmdArgs.join(' ');
         } else {
           cmd = this.curPrj.uiSettings.cmdArgs;

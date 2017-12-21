@@ -25,7 +25,7 @@ import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import * as io from 'socket.io-client';
 
 import { AlertService } from './alert.service';
-import { ISdk } from './sdk.service';
+import { ISdk, ISdkManagementMsg } from './sdk.service';
 import { ProjectType, ProjectTypeEnum } from './project.service';
 
 // Import RxJs required methods
@@ -34,7 +34,7 @@ import 'rxjs/add/operator/catch';
 import 'rxjs/add/observable/throw';
 import 'rxjs/add/operator/mergeMap';
 import 'rxjs/add/observable/of';
-import 'rxjs/add/operator/retryWhen';
+import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 
 
 export interface IXDSConfigProject {
@@ -132,6 +132,9 @@ export class XDSAgentService {
   protected projectAdd$ = new Subject<IXDSProjectConfig>();
   protected projectDel$ = new Subject<IXDSProjectConfig>();
   protected projectChange$ = new Subject<IXDSProjectConfig>();
+
+  protected sdkInstall$ = new Subject<ISdkManagementMsg>();
+  protected sdkRemove$ = new Subject<ISdkManagementMsg>();
 
   private baseUrl: string;
   private wsUrl: string;
@@ -249,7 +252,7 @@ export class XDSAgentService {
     this.socket.on('event:project-add', (ev) => {
       if (ev && ev.data && ev.data.id) {
         this.projectAdd$.next(Object.assign({}, ev.data));
-        if (ev.sessionID !== this.httpSessionID && ev.data.label) {
+        if (ev.sessionID !== '' && ev.sessionID !== this.httpSessionID && ev.data.label) {
           this.alert.info('Project "' + ev.data.label + '" has been added by another tool.');
         }
       } else if (isDevMode) {
@@ -261,7 +264,7 @@ export class XDSAgentService {
     this.socket.on('event:project-delete', (ev) => {
       if (ev && ev.data && ev.data.id) {
         this.projectDel$.next(Object.assign({}, ev.data));
-        if (ev.sessionID !== this.httpSessionID && ev.data.label) {
+        if (ev.sessionID !== '' && ev.sessionID !== this.httpSessionID && ev.data.label) {
           this.alert.info('Project "' + ev.data.label + '" has been deleted by another tool.');
         }
       } else if (isDevMode) {
@@ -273,10 +276,36 @@ export class XDSAgentService {
       if (ev && ev.data) {
         this.projectChange$.next(Object.assign({}, ev.data));
       } else if (isDevMode) {
-        console.log('Warning: received event:project-state-change with unknown data: ev=', ev);
+        console.log('Warning: received event:project-state-change with unkn220own data: ev=', ev);
       }
     });
 
+    this.socket.on('event:sdk-install', (ev) => {
+      if (ev && ev.data && ev.data.sdk) {
+        const evt = <ISdkManagementMsg>ev.data;
+        this.sdkInstall$.next(Object.assign({}, evt));
+
+        if (ev.sessionID !== '' && ev.sessionID !== this.httpSessionID && evt.sdk.name) {
+          this.alert.info('SDK "' + evt.sdk.name + '" has been installed by another tool.');
+        }
+      } else if (isDevMode) {
+        /* tslint:disable:no-console */
+        console.log('Warning: received event:sdk-install with unknown data: ev=', ev);
+      }
+    });
+
+    this.socket.on('event:sdk-remove', (ev) => {
+      if (ev && ev.data && ev.data.sdk) {
+        const evt = <ISdkManagementMsg>ev.data;
+        this.sdkRemove$.next(Object.assign({}, evt));
+
+        if (ev.sessionID !== '' && ev.sessionID !== this.httpSessionID && evt.sdk.name) {
+          this.alert.info('SDK "' + evt.sdk.name + '" has been removed by another tool.');
+        }
+      } else if (isDevMode) {
+        console.log('Warning: received event:sdk-remove with unknown data: ev=', ev);
+      }
+    });
   }
 
   /**
@@ -292,6 +321,14 @@ export class XDSAgentService {
 
   onProjectChange(): Observable<IXDSProjectConfig> {
     return this.projectChange$.asObservable();
+  }
+
+  onSdkInstall(): Observable<ISdkManagementMsg> {
+    return this.sdkInstall$.asObservable();
+  }
+
+  onSdkRemove(): Observable<ISdkManagementMsg> {
+    return this.sdkRemove$.asObservable();
   }
 
   /**
@@ -355,9 +392,21 @@ export class XDSAgentService {
     if (!svr || !svr.connected) {
       return Observable.of([]);
     }
-
     return this._get(svr.partialUrl + '/sdks');
   }
+
+  installSdk(serverID: string, id: string, filename?: string, force?: boolean): Observable<ISdk> {
+    return this._post(this._getServerUrl(serverID) + '/sdks', { id: id, filename: filename, force: force });
+  }
+
+  abortInstall(serverID: string, id: string): Observable<ISdk> {
+    return this._post(this._getServerUrl(serverID) + '/sdks/abortinstall', { id: id });
+  }
+
+  removeSdk(serverID: string, id: string): Observable<ISdk> {
+    return this._delete(this._getServerUrl(serverID) + '/sdks/' + id);
+  }
+
 
   /***
   ** Projects
@@ -418,6 +467,17 @@ export class XDSAgentService {
       return null;
     }
     return svr[0];
+  }
+
+  private _getServerUrl(serverID: string): string | ErrorObservable {
+    const svr = this._getServer(serverID);
+    if (!svr || !svr.connected) {
+      if (isDevMode) {
+        console.log('ERROR: XDS Server unknown: serverID=' + serverID);
+      }
+      return Observable.throw('Cannot identify XDS Server');
+    }
+    return svr.partialUrl;
   }
 
   private _attachAuthHeaders(options?: any) {

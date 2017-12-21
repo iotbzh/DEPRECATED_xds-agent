@@ -45,7 +45,10 @@ export class ProjectsComponent implements OnInit {
   }
 
   add() {
-    const activeModal = this.modalService.open(ProjectAddModalComponent, { size: 'lg', container: 'nb-layout' });
-    activeModal.componentInstance.modalHeader = 'Large Modal';
+    const activeModal = this.modalService.open(ProjectAddModalComponent, {
+      size: 'lg',
+      windowClass: 'modal-xxl',
+      container: 'nb-layout',
+    });
   }
 }
