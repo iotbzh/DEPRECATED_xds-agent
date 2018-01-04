@@ -21,7 +21,7 @@ import { Observable } from 'rxjs/Observable';
 
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
-import { SdkService, ISdk } from '../../@core-xds/services/sdk.service';
+import { SdkService, ISdk, StatusType } from '../../@core-xds/services/sdk.service';
 
 @Component({
   selector: 'xds-sdks',
@@ -44,6 +44,6 @@ export class SdksComponent implements OnInit {
   }
 
   isVisible(sdk: ISdk) {
-    return sdk.status === 'Installed' || sdk.status === 'Installing';
+    return sdk.status === StatusType.INSTALLED || sdk.status === StatusType.INSTALLING;
   }
 }

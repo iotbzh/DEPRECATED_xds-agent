@@ -24,7 +24,7 @@ import { ConfirmModalComponent, EType } from '../../confirm/confirm-modal/confir
 import { SdkInstallComponent } from './sdk-install.component';
 
 import { AlertService } from '../../../@core-xds/services/alert.service';
-import { SdkService, ISdk } from '../../../@core-xds/services/sdk.service';
+import { SdkService, ISdk, StatusType } from '../../../@core-xds/services/sdk.service';
 import { ISdkMessage } from '../../../@core-xds/services/xdsagent.service';
 
 interface ISdkMgt extends ISdk {
@@ -90,7 +90,7 @@ export class SdkManagementComponent implements OnInit {
       this.sdks = [];
       sdks.forEach(s => {
         // only display not installed SDK
-        if (s.status !== 'Not Installed') {
+        if (s.status !== StatusType.NOT_INSTALLED) {
           return;
         }
         profMap[s.profile] = s.profile;

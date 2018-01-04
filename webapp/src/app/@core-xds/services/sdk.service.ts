@@ -24,6 +24,24 @@ import { XDSAgentService } from '../services/xdsagent.service';
 
 import 'rxjs/add/observable/throw';
 
+/* FIXME: syntax only compatible with TS>2.4.0
+export enum StatusType {
+  DISABLE = 'Disable',
+  NOT_INSTALLED = 'Not Installed',
+  INSTALLING = 'Installing',
+  UNINSTALLING = 'Un-installing',
+  INSTALLED = 'Installed'
+}
+*/
+export type StatusTypeEnum = 'Disable' | 'Not Installed' | 'Installing' | 'Un-installing' | 'Installed';
+export const StatusType = {
+  DISABLE: 'Disable',
+  NOT_INSTALLED: 'Not Installed',
+  INSTALLING: 'Installing',
+  UNINSTALLING: 'Un-installing',
+  INSTALLED: 'Installed',
+};
+
 export interface ISdk {
   id: string;
   name: string;
@@ -97,7 +115,7 @@ export class SdkService {
       this._addSdk(evMgt.sdk);
     });
     this.xdsSvr.onSdkRemove().subscribe(evMgt => {
-      if (evMgt.sdk.status !== 'Not Installed') {
+      if (evMgt.sdk.status !== StatusType.NOT_INSTALLED) {
         /* tslint:disable:no-console */
         console.log('Error: received event:sdk-remove with invalid status: evMgt=', evMgt);
         return;
@@ -142,8 +160,14 @@ export class SdkService {
 
   private _addSdk(sdk: ISdk, noNext?: boolean): ISdk {
 
-    // add new sdk
-    this._sdksList.push(sdk);
+    // check if sdk already exists
+    const idx = this._sdksList.findIndex(s => s.id === sdk.id);
+    if (idx >= 0) {
+      this._sdksList[idx] = sdk;
+    } else {
+      // add new sdk
+      this._sdksList.push(sdk);
+    }
 
     // sort sdk array
     this._sdksList.sort((a, b) => {

@@ -6,7 +6,7 @@
         {{ sdk.name }}
       </div>
       <div class="col-6 col-md-4 text-right" role="group">
-        <button class="btn btn-outline-danger btn-tn btn-xds" (click)="remove(sdk)">
+        <button class="btn btn-outline-danger btn-tn btn-xds" [disabled]="!canRemove(sdk)" (click)="remove(sdk)">
           <span class="fa fa-trash fa-size-x2"></span>
         </button>
       </div>

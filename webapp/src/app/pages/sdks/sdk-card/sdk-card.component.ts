@@ -17,7 +17,7 @@
 */
 
 import { Component, Input, Pipe, PipeTransform } from '@angular/core';
-import { SdkService, ISdk } from '../../../@core-xds/services/sdk.service';
+import { SdkService, ISdk, StatusType } from '../../../@core-xds/services/sdk.service';
 import { AlertService } from '../../../@core-xds/services/alert.service';
 
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -40,6 +40,10 @@ export class SdkCardComponent {
     private sdkSvr: SdkService,
     private modalService: NgbModal,
   ) {
+  }
+
+  canRemove(sdk: ISdk) {
+    return sdk.status === StatusType.INSTALLED;
   }
 
   remove(sdk: ISdk) {
