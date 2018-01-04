@@ -54,6 +54,7 @@ func NewProjects(ctx *Context, st *st.SyncThing) *Projects {
 
 // Init Load Projects configuration
 func (p *Projects) Init(server *XdsServer) error {
+
 	svrList := make(map[string]*XdsServer)
 	// If server not set, load for all servers
 	if server == nil {

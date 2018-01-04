@@ -54,15 +54,19 @@ type XdsServer struct {
 	sockEventsLock *sync.Mutex
 
 	// Private fields
-	client    *common.HTTPClient
-	ioSock    *sio_client.Client
-	logOut    io.Writer
-	apiRouter *gin.RouterGroup
-	cmdList   map[string]interface{}
+	client      *common.HTTPClient
+	ioSock      *sio_client.Client
+	logOut      io.Writer
+	apiRouter   *gin.RouterGroup
+	cmdList     map[string]interface{}
+	cbOnConnect OnConnectedCB
 }
 
 // EventCB Event emitter callback
 type EventCB func(privData interface{}, evtData interface{}) error
+
+// OnConnectedCB connect callback
+type OnConnectedCB func(svr *XdsServer) error
 
 // caller Used to chain event listeners
 type caller struct {
@@ -133,6 +137,12 @@ func (xs *XdsServer) Connect() error {
 	err = xs._Connect(false)
 
 	return err
+}
+
+// ConnectOn Register a callback on events reception
+func (xs *XdsServer) ConnectOn(f OnConnectedCB) error {
+	xs.cbOnConnect = f
+	return nil
 }
 
 // IsTempoID returns true when server as a temporary id
@@ -536,15 +546,10 @@ func (xs *XdsServer) _CreateConnectHTTP() error {
 
 // _Reconnect Re-established connection
 func (xs *XdsServer) _Reconnect() error {
+
+	// Note that ConnectOn callback will be called (see apiv1.go file)
 	err := xs._Connect(true)
-	if err == nil {
-		// Reload projects list for this server
-		err = xs.projects.Init(xs)
-	}
-	if err == nil {
-		// Register again to all events
-		err = xs.EventRegister(xsapiv1.EVTAll, "")
-	}
+
 	return err
 }
 
@@ -575,6 +580,12 @@ func (xs *XdsServer) _Connect(reConn bool) error {
 	}
 
 	xs.Connected = true
+
+	// Call OnConnect callback
+	if xs.cbOnConnect != nil {
+		xs.cbOnConnect(xs)
+	}
+
 	xs._NotifyState()
 	return nil
 }

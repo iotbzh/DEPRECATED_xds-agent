@@ -117,6 +117,30 @@ func (s *APIService) AddXdsServer(cfg xdsconfig.XDSServerConf) (*XdsServer, erro
 
 		// Declare passthrough routes
 		s.sdksPassthroughInit(svr)
+
+		// Register callback on Connection
+		svr.ConnectOn(func(server *XdsServer) error {
+
+			// Add server to list
+			s.xdsServers[server.ID] = svr
+
+			// Register event forwarder
+			if err := s.sdksEventsForwardInit(server); err != nil {
+				s.Log.Errorf("XDS Server %v - sdk event forwarding error: %v", server.ID, err)
+			}
+
+			// Load projects
+			if err := s.projects.Init(server); err != nil {
+				s.Log.Errorf("XDS Server %v - project init error: %v", server.ID, err)
+			}
+
+			// Registered to all events
+			if err := server.EventRegister(xsapiv1.EVTAll, ""); err != nil {
+				s.Log.Errorf("XDS Server %v - register all events error: %v", server.ID, err)
+			}
+
+			return nil
+		})
 	}
 
 	// Established connection
@@ -125,24 +149,6 @@ func (s *APIService) AddXdsServer(cfg xdsconfig.XDSServerConf) (*XdsServer, erro
 	// Delete temporary ID with it has been replaced by right Server ID
 	if tempoID && !svr.IsTempoID() {
 		delete(s.xdsServers, cfg.ID)
-	}
-
-	// Add to map
-	s.xdsServers[svr.ID] = svr
-
-	// Register event forwarder
-	s.sdksEventsForwardInit(svr)
-
-	// Load projects
-	if err == nil && svr.Connected {
-		err = s.projects.Init(svr)
-	}
-
-	// Registered to all events
-	if err == nil && svr.Connected {
-		if err = svr.EventRegister(xsapiv1.EVTAll, ""); err != nil {
-			s.Log.Errorf("XDS Server %v - register all events error: %v", svr.ID, err)
-		}
 	}
 
 	return svr, err
