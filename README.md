@@ -1,5 +1,12 @@
 # XDS - X(cross) Development System Agent
 
+>
+>**DEPRECATED: this repo has been moved to AGL Gerrit server**
+>
+>**[https://gerrit.automotivelinux.org/gerrit/#/admin/projects/src/xds/xds-agent](https://gerrit.automotivelinux.org/gerrit/#/admin/projects/src/xds/xds-agent)**
+>
+
+
 XDS-agent is a client that should run on your local / user development machine
 when you use XDS.
 
