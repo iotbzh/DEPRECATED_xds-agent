@@ -4,7 +4,8 @@
     <ngx-header [position]="sidebar.id === 'left' ? 'normal': 'inverse'"></ngx-header>
   </nb-layout-header>
 
-  <nb-sidebar class="menu-sidebar" tag="menu-sidebar" responsive [right]="sidebar.id === 'right'">
+  <nb-sidebar class="menu-sidebar" tag="menu-sidebar" responsive [right]="sidebar.id === 'right'"
+    (mouseenter)="onMouseEnter($event)" (mouseleave)="onMouseLeave($event)">
 
     <nb-sidebar-header (click)="toogleSidebar()">
       <!-- XXX - ugly rework -->

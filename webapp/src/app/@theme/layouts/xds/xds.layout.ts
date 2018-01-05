@@ -1,4 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, EventEmitter } from '@angular/core';
 import {
   NbMediaBreakpoint,
   NbMediaBreakpointsService,
@@ -11,8 +11,11 @@ import {
 import { StateService } from '../../../@core/data/state.service';
 
 import { Subscription } from 'rxjs/Subscription';
+import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/withLatestFrom';
 import 'rxjs/add/operator/delay';
+import 'rxjs/add/observable/of';
+import 'rxjs/add/operator/takeUntil';
 
 // TODO: move layouts into the framework
 @Component({
@@ -31,6 +34,9 @@ export class XdsLayoutComponent implements OnDestroy {
   protected layoutState$: Subscription;
   protected sidebarState$: Subscription;
   protected menuClick$: Subscription;
+
+  private _mouseEnterStream: EventEmitter<any> = new EventEmitter();
+  private _mouseLeaveStream: EventEmitter<any> = new EventEmitter();
 
   constructor(protected stateService: StateService,
     protected menuService: NbMenuService,
@@ -62,6 +68,32 @@ export class XdsLayoutComponent implements OnDestroy {
     this.sidebarService.onCollapse().subscribe(s => s.tag === 'menu-sidebar' && (this.sidebarCompact = true));
     this.sidebarService.onExpand().subscribe(() => this.sidebarCompact = false);
     this.menuService.onSubmenuToggle().subscribe(i => i.item && i.item.expanded && (this.sidebarCompact = false));
+
+    // Automatically expand sidebar on mouse over
+    this._mouseEnterStream.flatMap(e => {
+      return Observable
+        .of(e)
+        .delay(200)
+        .takeUntil(this._mouseLeaveStream);
+    })
+      .subscribe(e => (this.sidebarCompact) && this.sidebarService.toggle(true, 'menu-sidebar'));
+
+    // Automatically collapse sidebar on mouse leave
+    this._mouseLeaveStream.flatMap(e => {
+      return Observable
+        .of(e)
+        .delay(500)
+        .takeUntil(this._mouseEnterStream);
+    })
+      .subscribe(e => this.sidebarService.toggle(true, 'menu-sidebar'));
+  }
+
+  onMouseEnter($event) {
+    this._mouseEnterStream.emit($event);
+  }
+
+  onMouseLeave($event) {
+    this._mouseLeaveStream.emit($event);
   }
 
   toogleSidebar() {
